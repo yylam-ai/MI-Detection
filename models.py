@@ -38,7 +38,7 @@ def CNN_train(X_train, y_train, REFIT):
     kernel_size = [3, 5, 7, 9, 11, 13, 15]
     filter_size = [4, 8, 12, 16, 24, 32]
     learning_rate = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7]
-    param_grid = dict(kernel_size = kernel_size, filter_size = filter_size, learning_rate = learning_rate, epochs = [2,5])
+    param_grid = dict(kernel_size = kernel_size, filter_size = filter_size, learning_rate = learning_rate,  epochs = [25, 50, 75, 100])
     grid_search = GridSearchCV(estimator = model, n_jobs = 1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
     grid_search = grid_search.fit(X_train, y_train)
     
