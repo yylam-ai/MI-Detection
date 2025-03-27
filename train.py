@@ -7,6 +7,7 @@ import argparse
 ap = argparse.ArgumentParser()
 ap.add_argument('-gpu', '--gpu', default='0')
 ap.add_argument('-view', '--view', default='multi')
+ap.add_argument('-dataPath', '--dataPath', default=os.path.join(os.getcwd(),'DataSplits'))
 args = vars(ap.parse_args())
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args['gpu']
@@ -15,10 +16,11 @@ if not os.path.exists(os.path.join(os.getcwd(),'output', 'matrices')): os.makedi
 MODEL = ['SVM', 'DT', 'KNN', 'RF', 'CNN']
 REFIT= ['AUC', 'Accuracy', 'Recall', 'F1-Score', 'Precision']
 
-x_train = np.load(os.path.join(os.path.join(os.getcwd(),'DataSplits'), 'x_train_' + args['view'] + '.npy'))
-x_test = np.load(os.path.join(os.path.join(os.getcwd(),'DataSplits'), 'x_test_' + args['view'] + '.npy'))
-y_train = np.load(os.path.join(os.path.join(os.getcwd(),'DataSplits'), 'y_train_' + args['view'] + '.npy'))
-y_test = np.load(os.path.join(os.path.join(os.getcwd(),'DataSplits'), 'y_test_' + args['view'] + '.npy'))
+print(args.keys())
+x_train = np.load(os.path.join(args['dataPath'], 'x_train_' + args['view'] + '.npy'))
+x_test = np.load(os.path.join(args['dataPath'], 'x_test_' + args['view'] + '.npy'))
+y_train = np.load(os.path.join(args['dataPath'], 'y_train_' + args['view'] + '.npy'))
+y_test = np.load(os.path.join(args['dataPath'], 'y_test_' + args['view'] + '.npy'))
 
 for f in range(0,5):    
     for i in range(len(MODEL)):           
