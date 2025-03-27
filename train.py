@@ -16,7 +16,6 @@ if not os.path.exists(os.path.join(os.getcwd(),'output', 'matrices')): os.makedi
 MODEL = ['SVM', 'DT', 'KNN', 'RF', 'CNN']
 REFIT= ['AUC', 'Accuracy', 'Recall', 'F1-Score', 'Precision']
 
-print(args.keys())
 x_train = np.load(os.path.join(args['dataPath'], 'x_train_' + args['view'] + '.npy'))
 x_test = np.load(os.path.join(args['dataPath'], 'x_test_' + args['view'] + '.npy'))
 y_train = np.load(os.path.join(args['dataPath'], 'y_train_' + args['view'] + '.npy'))
