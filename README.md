@@ -1,4 +1,5 @@
 # MI-Detection
+This repository is modified based on [multiEchoAI](https://github.com/degerliaysen/MultiEchoAI) due to fixes on outdated libraries.
 
 ## Setup Guide
 
