@@ -1,3 +1,4 @@
+import os
 from keras import layers, Model
 from keras import optimizers
 from scikeras.wrappers import KerasClassifier
@@ -7,6 +8,10 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from sktime.classification.kernel_based import RocketClassifier
+
+os.environ["KMP_WARNINGS"] = "0"
+
 
 Scoring = {'AUC':'roc_auc', 'Accuracy':'accuracy', 'Recall': 'recall', 'F1-Score': 'f1', 'Precision': 'precision'}
 
@@ -72,7 +77,7 @@ def RF_train(X_train, y_train, REFIT):
                   'max_features': ['auto', 'sqrt', 'log2'], 'class_weight': ['balanced', 'balanced_subsample'],
                   'warm_start': [False, True], 'bootstrap': [False, True]}]                 
   
-  RF_model = GridSearchCV(RandomForestClassifier(), params_grid, n_jobs = 1, scoring = Scoring, refit = REFIT, cv = 5)
+  RF_model = GridSearchCV(RandomForestClassifier(), params_grid, n_jobs = -1, scoring = Scoring, refit = REFIT, cv = 5)
   print('RF Train')
   RF_model.fit(X_train, y_train)
   print('RF Train Finished')
@@ -90,6 +95,30 @@ def KNN_train(X_train, y_train, REFIT):
   print('KNN Train Finished')
   
   return knn_model.best_params_, knn_model.best_estimator_
+
+
+def mini_rocket_classifier_train(X_train, y_train, REFIT):
+  params_grid = [{"num_kernels": [5000, 10000, 20000], "n_features_per_kernel": [2, 4, 6]}]
+  
+  mini_rocket = RocketClassifier(rocket_transform='minirocket')
+  grid_search = GridSearchCV(mini_rocket, params_grid, n_jobs=-1, refit=REFIT, cv=5)
+  print('MiniRocket Train')
+  grid_search.fit(X_train, y_train)
+  print('MiniRocket Train Finished')
+
+  return grid_search.best_params_, grid_search.best_estimator_
+
+
+def multi_rocket_classifier_train(X_train, y_train, REFIT):
+  params_grid = [{"num_kernels": [5000, 10000, 20000], "n_features_per_kernel": [2, 4, 6]}]
+  
+  multi_rocket = RocketClassifier(rocket_transform='multirocket')
+  grid_search = GridSearchCV(multi_rocket, params_grid, n_jobs=-1, scoring=Scoring, refit=REFIT, cv=5)
+  print('MultiRocket Train')
+  grid_search.fit(X_train, y_train)
+  print('MultiRocket Train Finished')
+
+  return grid_search.best_params_, grid_search.best_estimator_
 
 
 def performance_metrics(CM):
