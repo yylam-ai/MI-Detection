@@ -1,5 +1,7 @@
 from sklearn.metrics import confusion_matrix
-from models import * 
+from models import (SVM_train, KNN_train, DT_train, 
+                    RF_train, CNN_train, mini_rocket_classifier_train, multi_rocket_classifier_train, 
+                    performance_metrics)
 import numpy as np
 import os
 import argparse
@@ -13,8 +15,8 @@ args = vars(ap.parse_args())
 os.environ["CUDA_VISIBLE_DEVICES"] = args['gpu']
 if not os.path.exists(os.path.join(os.getcwd(),'output', 'matrices')): os.makedirs(os.path.join(os.getcwd(),'output', 'matrices'))
 
-MODEL = ['SVM', 'DT', 'KNN', 'RF', 'CNN']
-REFIT= ['AUC', 'Accuracy', 'Recall', 'F1-Score', 'Precision']
+MODEL = ['SVM', 'DT', 'KNN', 'RF', 'MiniRocket', 'MultiRocket']
+REFIT= ['AUC']
 
 x_train = np.load(os.path.join(args['dataPath'], 'x_train_' + args['view'] + '.npy'))
 x_test = np.load(os.path.join(args['dataPath'], 'x_test_' + args['view'] + '.npy'))
@@ -128,6 +130,55 @@ for f in range(0,5):
                 x_train = np.expand_dims(x_train, axis = -1)
                 x_test = np.expand_dims(x_test, axis = -1)
                 best_model, best_parameters = CNN_train(x_train[f], y_train[f], REFIT[j])    
+                score = best_model.predict(x_test[f])
+                
+                CM = confusion_matrix(y_test[f], score)
+                metrics = performance_metrics(CM)
+                
+                #Save the results
+                text_file = open(os.path.join(os.path.join(os.getcwd(), 'output'), MODEL[i] + '_' + args['view'] + '.txt'), "a")
+                text_file.write ("\n\n\n----------FOLD " + str(f) + "-------------\n")
+                text_file.write("\n\n\nConfusion Matrix :" + str(CM) + "\n")
+                text_file.write ("\nScoring:" + REFIT[j])
+                text_file.write ("\nSensitivity:" + str(metrics[0]))
+                text_file.write ("\nSpecificity:" + str(metrics[1]))
+                text_file.write("\nPrecision:" + str(metrics[2]))
+                text_file.write ("\nF1-Score:" + str(metrics[3]))
+                text_file.write ("\nF2-Score:" + str(metrics[4]))   
+                text_file.write("\nAccuracy:" + str(metrics[5]))
+                text_file.write('\nBest paramters:' + str(best_parameters))
+                text_file.close()
+                
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test[f])
+            
+            elif MODEL[i] == 'MiniRocket':
+                best_parameters, best_model = mini_rocket_classifier_train(x_train[f], y_train[f], REFIT[j])
+                score = best_model.predict(x_test[f])
+                
+                CM = confusion_matrix(y_test[f], score)
+                metrics = performance_metrics(CM)
+                
+                #Save the results
+                text_file = open(os.path.join(os.path.join(os.getcwd(), 'output'), MODEL[i] + '_' + args['view'] + '.txt'), "a")
+                text_file.write ("\n\n\n----------FOLD " + str(f) + "-------------\n")
+                text_file.write("\n\n\nConfusion Matrix :" + str(CM) + "\n")
+                text_file.write ("\nScoring:" + REFIT[j])
+                text_file.write ("\nSensitivity:" + str(metrics[0]))
+                text_file.write ("\nSpecificity:" + str(metrics[1]))
+                text_file.write("\nPrecision:" + str(metrics[2]))
+                text_file.write ("\nF1-Score:" + str(metrics[3]))
+                text_file.write ("\nF2-Score:" + str(metrics[4]))   
+                text_file.write("\nAccuracy:" + str(metrics[5]))
+                text_file.write('\nBest paramters:' + str(best_parameters))
+                text_file.close()
+                
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test[f])
+                                
+        
+            elif MODEL[i] == 'MultiRocket':
+                best_parameters, best_model = multi_rocket_classifier_train(x_train[f], y_train[f], REFIT[j])
                 score = best_model.predict(x_test[f])
                 
                 CM = confusion_matrix(y_test[f], score)
