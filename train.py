@@ -10,6 +10,8 @@ ap = argparse.ArgumentParser()
 ap.add_argument('-gpu', '--gpu', default='0')
 ap.add_argument('-view', '--view', default='multi')
 ap.add_argument('-dataPath', '--dataPath', default=os.path.join(os.getcwd(),'DataSplits'))
+ap.add_argument('-outputPath', '--outputPath', default=os.path.join(os.getcwd(), 'output'))
+
 args = vars(ap.parse_args())
 
 os.environ["CUDA_VISIBLE_DEVICES"] = args['gpu']
@@ -38,7 +40,7 @@ for f in range(0,5):
                 metrics = performance_metrics(CM)
                 
                 #Save the results
-                text_file = open(os.path.join(os.path.join(os.getcwd(), 'output'), MODEL[i] + '_' + args['view'] + '.txt'), "a")
+                text_file = open(os.path.join(args['outputPath'], MODEL[i] + '_' + args['view'] + '.txt'), "a")
                 text_file.write ("\n\n\n----------FOLD " + str(f) + "-------------\n")
                 text_file.write("\n\n\nConfusion Matrix :" + str(CM) + "\n")
                 text_file.write ("\nScoring:" + REFIT[j])
@@ -62,7 +64,7 @@ for f in range(0,5):
                 metrics = performance_metrics(CM)
                 
                 #Save the results
-                text_file = open(os.path.join(os.path.join(os.getcwd(), 'output'), MODEL[i] + '_' + args['view'] + '.txt'), "a")
+                text_file = open(os.path.join(args['outputPath'], MODEL[i] + '_' + args['view'] + '.txt'), "a")
                 text_file.write ("\n\n\n----------FOLD " + str(f) + "-------------\n")
                 text_file.write("\n\n\nConfusion Matrix :" + str(CM) + "\n")
                 text_file.write ("\nScoring:" + REFIT[j])
@@ -86,7 +88,7 @@ for f in range(0,5):
                 metrics = performance_metrics(CM)
                 
                 #Save the results
-                text_file = open(os.path.join(os.path.join(os.getcwd(), 'output'), MODEL[i] + '_' + args['view'] + '.txt'), "a")
+                text_file = open(os.path.join(args['outputPath'], MODEL[i] + '_' + args['view'] + '.txt'), "a")
                 text_file.write ("\n\n\n----------FOLD " + str(f) + "-------------\n")
                 text_file.write("\n\n\nConfusion Matrix :" + str(CM) + "\n")
                 text_file.write ("\nScoring:" + REFIT[j])
@@ -110,7 +112,7 @@ for f in range(0,5):
                 metrics = performance_metrics(CM)
                 
                 #Save the results
-                text_file = open(os.path.join(os.path.join(os.getcwd(), 'output'), MODEL[i] + '_' + args['view'] + '.txt'), "a")
+                text_file = open(os.path.join(args['outputPath'], MODEL[i] + '_' + args['view'] + '.txt'), "a")
                 text_file.write ("\n\n\n----------FOLD " + str(f) + "-------------\n")
                 text_file.write("\n\n\nConfusion Matrix :" + str(CM) + "\n")
                 text_file.write ("\nScoring:" + REFIT[j])
@@ -136,7 +138,7 @@ for f in range(0,5):
                 metrics = performance_metrics(CM)
                 
                 #Save the results
-                text_file = open(os.path.join(os.path.join(os.getcwd(), 'output'), MODEL[i] + '_' + args['view'] + '.txt'), "a")
+                text_file = open(os.path.join(args['outputPath'], MODEL[i] + '_' + args['view'] + '.txt'), "a")
                 text_file.write ("\n\n\n----------FOLD " + str(f) + "-------------\n")
                 text_file.write("\n\n\nConfusion Matrix :" + str(CM) + "\n")
                 text_file.write ("\nScoring:" + REFIT[j])
@@ -160,7 +162,7 @@ for f in range(0,5):
                 metrics = performance_metrics(CM)
                 
                 #Save the results
-                text_file = open(os.path.join(os.path.join(os.getcwd(), 'output'), MODEL[i] + '_' + args['view'] + '.txt'), "a")
+                text_file = open(os.path.join(args['outputPath'], MODEL[i] + '_' + args['view'] + '.txt'), "a")
                 text_file.write ("\n\n\n----------FOLD " + str(f) + "-------------\n")
                 text_file.write("\n\n\nConfusion Matrix :" + str(CM) + "\n")
                 text_file.write ("\nScoring:" + REFIT[j])
@@ -185,7 +187,7 @@ for f in range(0,5):
                 metrics = performance_metrics(CM)
                 
                 #Save the results
-                text_file = open(os.path.join(os.path.join(os.getcwd(), 'output'), MODEL[i] + '_' + args['view'] + '.txt'), "a")
+                text_file = open(os.path.join(args['outputPath'], MODEL[i] + '_' + args['view'] + '.txt'), "a")
                 text_file.write ("\n\n\n----------FOLD " + str(f) + "-------------\n")
                 text_file.write("\n\n\nConfusion Matrix :" + str(CM) + "\n")
                 text_file.write ("\nScoring:" + REFIT[j])

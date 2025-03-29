@@ -47,7 +47,7 @@ def CNN_train(X_train, y_train, REFIT):
     filter_size = [4, 8, 12, 16, 24, 32]
     learning_rate = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7]
     param_grid = dict(kernel_size = kernel_size, filter_size = filter_size, learning_rate = learning_rate,  epochs = [25, 50, 75, 100])
-    grid_search = GridSearchCV(estimator = model, n_jobs = 1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
+    grid_search = GridSearchCV(estimator = model, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
     grid_search = grid_search.fit(X_train, y_train)
     
     return grid_search.best_estimator_, grid_search.best_params_
@@ -55,7 +55,7 @@ def CNN_train(X_train, y_train, REFIT):
 
 def SVM_train(X_train, y_train, REFIT):
   params_grid = [{'kernel': ['rbf', 'linear'], 'gamma': [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6], 'C': [1, 10, 100, 1000]}]                 
-  svm_model = GridSearchCV(SVC(), params_grid, n_jobs = 1, scoring = Scoring, refit = REFIT, cv = 5)
+  svm_model = GridSearchCV(SVC(), params_grid, n_jobs = -1, scoring = Scoring, refit = REFIT, cv = 5)
   print('SVM Train')
   svm_model.fit(X_train, y_train)
   print('SVM Train Finished')
@@ -67,7 +67,7 @@ def DT_train(X_train, y_train, REFIT):
   params_grid = [{'criterion': ['gini', 'entropy'],'splitter': ['best', 'random'], 
                   'max_features': ['auto', 'sqrt', 'log2']}]                 
   
-  dt_model = GridSearchCV(DecisionTreeClassifier(), params_grid, n_jobs = 1, scoring = Scoring, refit = REFIT, cv = 5)
+  dt_model = GridSearchCV(DecisionTreeClassifier(), params_grid, n_jobs = -1, scoring = Scoring, refit = REFIT, cv = 5)
   print('DT Train')
   dt_model.fit(X_train, y_train)
   print('DT Train Finished')
@@ -80,7 +80,7 @@ def RF_train(X_train, y_train, REFIT):
                   'max_features': ['auto', 'sqrt', 'log2'], 'class_weight': ['balanced', 'balanced_subsample'],
                   'warm_start': [False, True], 'bootstrap': [False, True]}]                 
   
-  RF_model = GridSearchCV(RandomForestClassifier(), params_grid, n_jobs = -1, scoring = Scoring, refit = REFIT, cv = 5)
+  RF_model = GridSearchCV(RandomForestClassifier(), params_grid, n_jobs = 1, scoring = Scoring, refit = REFIT, cv = 5)
   print('RF Train')
   RF_model.fit(X_train, y_train)
   print('RF Train Finished')
@@ -92,7 +92,7 @@ def KNN_train(X_train, y_train, REFIT):
   params_grid = [{'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],'n_neighbors': [5, 10, 15, 20, 25, 30], 
                   'weights': ['uniform', 'distance'], 'p':[1, 2]}]                 
   
-  knn_model = GridSearchCV(KNeighborsClassifier(), params_grid, n_jobs = 1, scoring = Scoring, refit = REFIT, cv = 5)
+  knn_model = GridSearchCV(KNeighborsClassifier(), params_grid, n_jobs = -1, scoring = Scoring, refit = REFIT, cv = 5)
   print('KNN Train')
   knn_model.fit(X_train, y_train)
   print('KNN Train Finished')

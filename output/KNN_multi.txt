@@ -6,26 +6,9 @@
 
 
 Confusion Matrix :[[ 5  4]
- [ 6 11]]
-
-Scoring:AUC
-Sensitivity:64.70588235294117
-Specificity:55.55555555555556
-Precision:73.33333333333333
-F1-Score:68.75
-F2-Score:66.26506024096386
-Accuracy:61.53846153846154
-Best paramters:{'algorithm': 'auto', 'n_neighbors': 30, 'p': 2, 'weights': 'uniform'}
-
-
-----------FOLD 0-------------
-
-
-
-Confusion Matrix :[[ 5  4]
  [ 5 12]]
 
-Scoring:Accuracy
+Scoring:AUC
 Sensitivity:70.58823529411765
 Specificity:55.55555555555556
 Precision:75.0
@@ -35,137 +18,69 @@ Accuracy:65.38461538461539
 Best paramters:{'algorithm': 'auto', 'n_neighbors': 30, 'p': 1, 'weights': 'uniform'}
 
 
-----------FOLD 0-------------
-
-
-
-Confusion Matrix :[[ 5  4]
- [ 6 11]]
-
-Scoring:Recall
-Sensitivity:64.70588235294117
-Specificity:55.55555555555556
-Precision:73.33333333333333
-F1-Score:68.75
-F2-Score:66.26506024096386
-Accuracy:61.53846153846154
-Best paramters:{'algorithm': 'auto', 'n_neighbors': 30, 'p': 2, 'weights': 'uniform'}
-
-
-----------FOLD 0-------------
-
-
-
-Confusion Matrix :[[ 4  5]
- [ 6 11]]
-
-Scoring:F1-Score
-Sensitivity:64.70588235294117
-Specificity:44.44444444444444
-Precision:68.75
-F1-Score:66.66666666666666
-F2-Score:65.47619047619048
-Accuracy:57.692307692307686
-Best paramters:{'algorithm': 'auto', 'n_neighbors': 25, 'p': 2, 'weights': 'distance'}
-
-
-----------FOLD 0-------------
-
-
-
-Confusion Matrix :[[ 5  4]
- [ 6 11]]
-
-Scoring:Precision
-Sensitivity:64.70588235294117
-Specificity:55.55555555555556
-Precision:73.33333333333333
-F1-Score:68.75
-F2-Score:66.26506024096386
-Accuracy:61.53846153846154
-Best paramters:{'algorithm': 'auto', 'n_neighbors': 20, 'p': 2, 'weights': 'uniform'}
-
-
-----------FOLD 0-------------
-
-
-
-Confusion Matrix :[[ 5  4]
- [ 6 11]]
-
-Scoring:AUC
-Sensitivity:64.70588235294117
-Specificity:55.55555555555556
-Precision:73.33333333333333
-F1-Score:68.75
-F2-Score:66.26506024096386
-Accuracy:61.53846153846154
-Best paramters:{'algorithm': 'auto', 'n_neighbors': 30, 'p': 2, 'weights': 'uniform'}
-
-
-----------FOLD 0-------------
+----------FOLD 1-------------
 
 
 
 Confusion Matrix :[[ 5  4]
  [ 5 12]]
 
-Scoring:Accuracy
+Scoring:AUC
 Sensitivity:70.58823529411765
 Specificity:55.55555555555556
 Precision:75.0
 F1-Score:72.72727272727273
 F2-Score:71.42857142857142
 Accuracy:65.38461538461539
-Best paramters:{'algorithm': 'auto', 'n_neighbors': 30, 'p': 1, 'weights': 'uniform'}
+Best paramters:{'algorithm': 'auto', 'n_neighbors': 15, 'p': 1, 'weights': 'uniform'}
 
 
-----------FOLD 0-------------
-
-
-
-Confusion Matrix :[[ 5  4]
- [ 6 11]]
-
-Scoring:Recall
-Sensitivity:64.70588235294117
-Specificity:55.55555555555556
-Precision:73.33333333333333
-F1-Score:68.75
-F2-Score:66.26506024096386
-Accuracy:61.53846153846154
-Best paramters:{'algorithm': 'auto', 'n_neighbors': 30, 'p': 2, 'weights': 'uniform'}
-
-
-----------FOLD 0-------------
+----------FOLD 2-------------
 
 
 
-Confusion Matrix :[[ 4  5]
- [ 6 11]]
+Confusion Matrix :[[ 5  3]
+ [ 2 16]]
 
-Scoring:F1-Score
-Sensitivity:64.70588235294117
-Specificity:44.44444444444444
-Precision:68.75
-F1-Score:66.66666666666666
-F2-Score:65.47619047619048
-Accuracy:57.692307692307686
-Best paramters:{'algorithm': 'auto', 'n_neighbors': 25, 'p': 2, 'weights': 'distance'}
-
-
-----------FOLD 0-------------
+Scoring:AUC
+Sensitivity:88.88888888888889
+Specificity:62.5
+Precision:84.21052631578947
+F1-Score:86.48648648648648
+F2-Score:87.91208791208791
+Accuracy:80.76923076923077
+Best paramters:{'algorithm': 'auto', 'n_neighbors': 25, 'p': 1, 'weights': 'uniform'}
 
 
+----------FOLD 3-------------
 
-Confusion Matrix :[[ 5  4]
- [ 6 11]]
 
-Scoring:Precision
-Sensitivity:64.70588235294117
-Specificity:55.55555555555556
-Precision:73.33333333333333
-F1-Score:68.75
-F2-Score:66.26506024096386
-Accuracy:61.53846153846154
-Best paramters:{'algorithm': 'auto', 'n_neighbors': 20, 'p': 2, 'weights': 'uniform'}
+
+Confusion Matrix :[[ 1  7]
+ [ 1 17]]
+
+Scoring:AUC
+Sensitivity:94.44444444444444
+Specificity:12.5
+Precision:70.83333333333334
+F1-Score:80.95238095238095
+F2-Score:88.54166666666667
+Accuracy:69.23076923076923
+Best paramters:{'algorithm': 'auto', 'n_neighbors': 25, 'p': 1, 'weights': 'distance'}
+
+
+----------FOLD 4-------------
+
+
+
+Confusion Matrix :[[ 7  1]
+ [ 1 17]]
+
+Scoring:AUC
+Sensitivity:94.44444444444444
+Specificity:87.5
+Precision:94.44444444444444
+F1-Score:94.44444444444444
+F2-Score:94.44444444444444
+Accuracy:92.3076923076923
+Best paramters:{'algorithm': 'auto', 'n_neighbors': 20, 'p': 1, 'weights': 'uniform'}
