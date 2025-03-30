@@ -20,23 +20,24 @@ if not os.path.exists(os.path.join(os.getcwd(),'output', 'matrices')): os.makedi
 MODEL = ['SVM', 'DT', 'KNN', 'RF', 'MiniRocket', 'MultiRocket']
 REFIT= ['AUC']
 
-x_train = np.load(os.path.join(args['dataPath'], 'x_train_' + args['view'] + '.npy'))
-x_test = np.load(os.path.join(args['dataPath'], 'x_test_' + args['view'] + '.npy'))
-y_train = np.load(os.path.join(args['dataPath'], 'y_train_' + args['view'] + '.npy'))
-y_test = np.load(os.path.join(args['dataPath'], 'y_test_' + args['view'] + '.npy'))
+X_train = np.load(os.path.join(args['dataPath'], 'x_train_' + args['view'] + '.npy'))
+X_test = np.load(os.path.join(args['dataPath'], 'x_test_' + args['view'] + '.npy'))
+Y_train = np.load(os.path.join(args['dataPath'], 'y_train_' + args['view'] + '.npy'))
+Y_test = np.load(os.path.join(args['dataPath'], 'y_test_' + args['view'] + '.npy'))
 
 for f in range(0,5):    
     for i in range(len(MODEL)):           
         for j in range(len(REFIT)):            
             #Shuffle train data
             np.random.seed(seed=3)
-            idx = np.random.permutation(len(x_train[f]))
-            x_train[f], y_train[f] = x_train[f][idx], y_train[f][idx]
+            idx = np.random.permutation(len(X_train[f]))
+            x_train, y_train = X_train[f][idx], Y_train[f][idx]
+            x_test, y_test = X_test[f], Y_test[f]
         
             if MODEL[i] == 'SVM':    
-                best_parameters, best_model = SVM_train(x_train[f], y_train[f], REFIT[j])
-                score = best_model.predict(x_test[f])
-                CM = confusion_matrix(y_test[f], score)
+                best_parameters, best_model = SVM_train(x_train, y_train, REFIT[j])
+                score = best_model.predict(x_test)
+                CM = confusion_matrix(y_test, score)
                 metrics = performance_metrics(CM)
                 
                 #Save the results
@@ -54,13 +55,13 @@ for f in range(0,5):
                 text_file.close()
                     
                 np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
-                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test[f])
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test)
                                 
             elif MODEL[i] == 'KNN':
-                best_parameters, best_model = KNN_train(x_train[f], y_train[f], REFIT[j])
-                score = best_model.predict(x_test[f])
+                best_parameters, best_model = KNN_train(x_train, y_train, REFIT[j])
+                score = best_model.predict(x_test)
                 
-                CM = confusion_matrix(y_test[f], score)
+                CM = confusion_matrix(y_test, score)
                 metrics = performance_metrics(CM)
                 
                 #Save the results
@@ -78,13 +79,13 @@ for f in range(0,5):
                 text_file.close()
                 
                 np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
-                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test[f])
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test)
                                        
             elif MODEL[i] == 'DT':
-                best_parameters, best_model = DT_train(x_train[f], y_train[f], REFIT[j])
-                score = best_model.predict(x_test[f])
+                best_parameters, best_model = DT_train(x_train, y_train, REFIT[j])
+                score = best_model.predict(x_test)
                 
-                CM = confusion_matrix(y_test[f], score)
+                CM = confusion_matrix(y_test, score)
                 metrics = performance_metrics(CM)
                 
                 #Save the results
@@ -102,13 +103,13 @@ for f in range(0,5):
                 text_file.close()
                 
                 np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
-                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test[f])
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test)
                                 
             elif MODEL[i] == 'RF':
-                best_parameters, best_model = RF_train(x_train[f], y_train[f], REFIT[j])
-                score = best_model.predict(x_test[f])
+                best_parameters, best_model = RF_train(x_train, y_train, REFIT[j])
+                score = best_model.predict(x_test)
                 
-                CM = confusion_matrix(y_test[f], score)
+                CM = confusion_matrix(y_test, score)
                 metrics = performance_metrics(CM)
                 
                 #Save the results
@@ -126,15 +127,15 @@ for f in range(0,5):
                 text_file.close()
                 
                 np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
-                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test[f])
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test)
                                 
             elif MODEL[i] == 'CNN':      
                 x_train = np.expand_dims(x_train, axis = -1)
                 x_test = np.expand_dims(x_test, axis = -1)
-                best_model, best_parameters = CNN_train(x_train[f], y_train[f], REFIT[j])    
-                score = best_model.predict(x_test[f])
+                best_model, best_parameters = CNN_train(x_train, y_train, REFIT[j])    
+                score = best_model.predict(x_test)
                 
-                CM = confusion_matrix(y_test[f], score)
+                CM = confusion_matrix(y_test, score)
                 metrics = performance_metrics(CM)
                 
                 #Save the results
@@ -152,13 +153,13 @@ for f in range(0,5):
                 text_file.close()
                 
                 np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
-                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test[f])
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test)
             
             elif MODEL[i] == 'MiniRocket':
-                best_parameters, best_model = mini_rocket_classifier_train(x_train[f], y_train[f], REFIT[j])
-                score = best_model.predict(x_test[f])
+                best_parameters, best_model = mini_rocket_classifier_train(x_train, y_train, REFIT[j])
+                score = best_model.predict(x_test)
                 
-                CM = confusion_matrix(y_test[f], score)
+                CM = confusion_matrix(y_test, score)
                 metrics = performance_metrics(CM)
                 
                 #Save the results
@@ -176,14 +177,17 @@ for f in range(0,5):
                 text_file.close()
                 
                 np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
-                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test[f])
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test)
                                 
         
             elif MODEL[i] == 'MultiRocket':
-                best_parameters, best_model = multi_rocket_classifier_train(x_train[f], y_train[f], REFIT[j])
-                score = best_model.predict(x_test[f])
+                x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
+                x_test = x_test.reshape(x_test.shape[0], 1, x_test.shape[1])
+
+                best_parameters, best_model = multi_rocket_classifier_train(x_train, y_train, REFIT[j])
+                score = best_model.predict(x_test)
                 
-                CM = confusion_matrix(y_test[f], score)
+                CM = confusion_matrix(y_test, score)
                 metrics = performance_metrics(CM)
                 
                 #Save the results
@@ -201,5 +205,5 @@ for f in range(0,5):
                 text_file.close()
                 
                 np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
-                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test[f])
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test)
                                 
