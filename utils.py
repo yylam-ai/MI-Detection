@@ -48,4 +48,5 @@ if __name__ == "__main__":
 
     all_results = pd.concat([extract_metrics(fp) for fp in file_paths], ignore_index=True)
 
+    print(f"{'='*20} Average pefromance results computed from 5-fold {'='*20}")
     print(tabulate(all_results, headers='keys', tablefmt='grid'))
