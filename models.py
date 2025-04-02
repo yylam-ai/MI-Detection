@@ -98,6 +98,7 @@ def dpnas_model(X_train: np.ndarray):
    return model
 
 def dpnas_train(X_train: np.ndarray, y_train: np.ndarray, REFIT: str):
+  print('...Training DPNAS...')    
   model = DPNASTorchModel(dpnas_model(X_train))
   param_grid = {
       'lr': [0.001, 0.01, 0.1],
