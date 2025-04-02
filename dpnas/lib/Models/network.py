@@ -73,7 +73,6 @@ class Net(nn.Module):
 
     def __init__(self, state_list, num_classes, net_input, bn_val, do_drop):
         super(Net, self).__init__()
-        print(net_input.shape)
         batch_size = net_input.size(0)
         num_colors = net_input.size(1)
         image_size = net_input.size(2)

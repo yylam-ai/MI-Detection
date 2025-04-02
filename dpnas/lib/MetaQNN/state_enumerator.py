@@ -5,7 +5,7 @@
 import math
 
 # custom libraries
-import lib.Models.state_space_parameters as state_space_parameters
+import dpnas.lib.Models.state_space_parameters as state_space_parameters
 
 
 class State:

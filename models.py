@@ -14,6 +14,17 @@ from sktime.classification.kernel_based import RocketClassifier
 from sktime.transformations.panel.rocket import MultiRocket
 from sklearn.linear_model import RidgeClassifierCV
 
+from dpnas.lib.MetaQNN.q_learner import QLearner as QLearner
+from dpnas.lib.Models.network import Net
+
+from sklearn.base import BaseEstimator, ClassifierMixin
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+from types import SimpleNamespace
+
 os.environ["KMP_WARNINGS"] = "0"
 
 Scoring = {'AUC':'roc_auc', 'Accuracy':'accuracy', 'Recall': 'recall', 'F1-Score': 'f1', 'Precision': 'precision'}
@@ -38,6 +49,64 @@ def cnn1D_model(inpt_dim, kernel_size = 5, filter_size = 8, learning_rate = 1e-1
     model.compile(loss = 'binary_crossentropy', optimizer = opti, metrics = ['accuracy'])
     
     return model
+
+class DPNASTorchModel(BaseEstimator, ClassifierMixin):
+    def __init__(self, model, lr=0.01, epochs=10):
+        self.lr = lr
+        self.epochs = epochs
+        self.model = model
+        self.criterion = nn.CrossEntropyLoss()
+        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+
+    def fit(self, X, y):
+        X_tensor = torch.tensor(X, dtype=torch.float32)
+        y_tensor = torch.tensor(y, dtype=torch.long)
+        dataset = TensorDataset(X_tensor, y_tensor)
+        dataloader = DataLoader(dataset, batch_size=2, shuffle=True)
+
+        for _ in range(self.epochs):
+            for batch_X, batch_y in dataloader:
+                self.optimizer.zero_grad()
+                outputs = self.model(batch_X)
+                loss = self.criterion(outputs, batch_y)
+                loss.backward()
+                self.optimizer.step()
+        return self
+
+    def predict(self, X):
+        X_tensor = torch.tensor(X, dtype=torch.float32)
+        outputs = self.model(X_tensor)
+        return torch.argmax(outputs, axis=1).numpy()
+
+    def predict_proba(self, X):
+      X_tensor = torch.tensor(X, dtype=torch.float32)
+      with torch.no_grad():
+          outputs = self.model(X_tensor)
+      return outputs.numpy() 
+
+def dpnas_model(X_train: np.ndarray):
+   batch_size = 2
+   X_train_init = X_train[:batch_size]
+   X_train_init = torch.tensor(X_train_init)
+
+   state_string = "[C(1024,5,1,0,1), C(16,3,1,1,0), SM(2)]"
+   args = SimpleNamespace(**{"early_stopping_thresh": 0.15, "patch_size": 12, "task": 2, "net": "[C(1024,5,1,0,1), C(16,3,1,1,0), SM(2)]"})
+   q_learner = QLearner(args, 2, "")
+   q_learner.generate_fixed_net_states_from_string(state_string)
+   model = Net(q_learner.state_list, 2, X_train_init, 1e-4, 0)
+   
+   return model
+
+def dpnas_train(X_train: np.ndarray, y_train: np.ndarray, REFIT: str):
+  model = DPNASTorchModel(dpnas_model(X_train))
+  param_grid = {
+      'lr': [0.001, 0.01, 0.1],
+      'epochs': [10, 20]
+  }
+  grid_search = GridSearchCV(estimator = model, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
+  grid_search = grid_search.fit(X_train, y_train)
+  
+  return grid_search.best_estimator_, grid_search.best_params_
 
 
 def CNN_train(X_train: np.ndarray, y_train: np.ndarray, REFIT: str):

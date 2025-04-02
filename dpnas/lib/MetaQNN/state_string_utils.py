@@ -5,7 +5,7 @@
 import math
 
 # custom libraries
-import lib.MetaQNN.state_enumerator as se
+import dpnas.lib.MetaQNN.state_enumerator as se
 
 
 class StateStringUtils:
