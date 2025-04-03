@@ -1,10 +1,12 @@
 from sklearn.metrics import confusion_matrix
 from models import (SVM_train, KNN_train, DT_train, 
                     RF_train, CNN_train, mini_rocket_classifier_train, multi_rocket_classifier_train, 
-                    dpnas_train, performance_metrics)
+                    dpnas_train, performance_metrics,
+                    dpnas_model)
 import numpy as np
 import os
 import argparse
+import torch
      
 ap = argparse.ArgumentParser()
 ap.add_argument('-gpu', '--gpu', default='0')
@@ -213,8 +215,14 @@ for f in range(0,5):
                 x_test = np.expand_dims(x_test, axis = -1)
                 x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
                 x_test = x_test.reshape(x_test.shape[0], 1, x_test.shape[1])
-                best_model, best_parameters = dpnas_train(x_train, y_train, REFIT[j])    
-                score = best_model.predict(x_test)
+
+                model = dpnas_model(x_train)
+                x_train_emb = model.feature_extractor(torch.tensor(x_train, dtype=torch.float32))
+                x_test_emb = model.feature_extractor(torch.tensor(x_test, dtype=torch.float32))
+                x_test_emb = x_test_emb.view(x_test_emb.shape[0], -1)
+
+                best_model, best_parameters = dpnas_train(model, x_train_emb, y_train, REFIT[j])
+                score = best_model.predict(x_test_emb)
                 
                 CM = confusion_matrix(y_test, score)
                 metrics = performance_metrics(CM)

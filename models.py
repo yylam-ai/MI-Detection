@@ -67,6 +67,7 @@ class DPNASTorchModel(BaseEstimator, ClassifierMixin):
         for _ in range(self.epochs):
             for batch_X, batch_y in dataloader:
                 self.optimizer.zero_grad()
+                batch_X = batch_X.view(batch_X.shape[0], -1)  
                 outputs = self.model(batch_X)
                 loss = self.criterion(outputs, batch_y)
                 loss.backward()
@@ -97,18 +98,18 @@ def dpnas_model(X_train: np.ndarray):
    
    return model
 
-def dpnas_train(X_train: np.ndarray, y_train: np.ndarray, REFIT: str):
-  print('...Training DPNAS...')    
-  model = DPNASTorchModel(dpnas_model(X_train))
+def dpnas_train(model: Net, X_train, y_train: np.ndarray, REFIT: str):
+  print('...Training DPNAS...')
+  classifier = DPNASTorchModel(model.classifier)
   param_grid = {
       'lr': [0.001, 0.01, 0.1],
       'epochs': [10, 20]
   }
-  grid_search = GridSearchCV(estimator = model, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
+  grid_search = GridSearchCV(estimator = classifier, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
   grid_search = grid_search.fit(X_train, y_train)
   
   return grid_search.best_estimator_, grid_search.best_params_
-
+   
 
 def CNN_train(X_train: np.ndarray, y_train: np.ndarray, REFIT: str):
     print('...Training...')    
