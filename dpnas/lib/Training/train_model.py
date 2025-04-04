@@ -16,11 +16,11 @@ from shutil import rmtree
 import time
 
 # custom libraries
-from lib.Models.network import Net
-from lib.Utility.utils import GPUMem
-from lib.Utility.utils import save_checkpoint
-from lib.Utility.metrics import AverageMeter
-import lib.Models.state_space_parameters as state_space_parameters
+from dpnas.lib.Models.network import Net
+from dpnas.lib.Utility.utils import GPUMem
+from dpnas.lib.Utility.utils import save_checkpoint
+from dpnas.lib.Utility.metrics import AverageMeter
+import dpnas.lib.Models.state_space_parameters as state_space_parameters
 
 
 class Trainer:
@@ -37,8 +37,8 @@ class Trainer:
 
         Parameters:
             state_list (list): list of states to build the net
-            dataset (lib.Datasets.datasets.CODEBRIM): dataset to train and validate the net on
-            weight_initializer (lib.Models.initialization.WeightInit): class for initializing the weights of
+            dataset (dpnas.lib.Datasets.datasets.CODEBRIM): dataset to train and validate the net on
+            weight_initializer (dpnas.lib.Models.initialization.WeightInit): class for initializing the weights of
                                                                        the network
             device (torch.device): type of computational device available (cpu / gpu)
             args (argparse.ArgumentParser): parsed command line arguments
@@ -300,7 +300,7 @@ class Trainer:
 
         Parameters:
             train_loader (torch.utils.data.DataLoader): data loader for the train set
-            model (lib.Models.network.Net): model of the net to be trained
+            model (dpnas.lib.Models.network.Net): model of the net to be trained
             criterion (torch.nn.BCELoss): loss criterion to be optimized
             epoch (int): continuous epoch counter
             optimizer (torch.optim.SGD): optimizer instance like SGD or Adam
@@ -413,7 +413,7 @@ class Trainer:
 
         Parameters:
             val_loader (torch.utils.data.DataLoader): data loader for the validation set
-            model (lib.Models.network.Net): model of a net that has to be validated
+            model (dpnas.lib.Models.network.Net): model of a net that has to be validated
             criterion (torch.nn.BCELoss): loss criterion
             device (torch.device): device name where data is transferred to
             is_val (bool): validation or testing mode

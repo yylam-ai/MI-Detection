@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 
 # custom libraries
-from lib.MetaQNN.cnn import parse as cnn_parse
-import lib.MetaQNN.state_enumerator as se
-from lib.MetaQNN.state_string_utils import StateStringUtils
-import lib.Models.state_space_parameters as state_space_parameters
+from dpnas.lib.MetaQNN.cnn import parse as cnn_parse
+import dpnas.lib.MetaQNN.state_enumerator as se
+from dpnas.lib.MetaQNN.state_string_utils import StateStringUtils
+import dpnas.lib.Models.state_space_parameters as state_space_parameters
 
 
 class QValues:
@@ -373,7 +373,7 @@ class QLearner:
             acc_test (float): test accuracy
             verbose (bool): True for printing search net performance measures to stdout
         """
-        self.fixed_net_buffer = self.fixed_net_buffer.append(pd.DataFrame([[self.state_string,
+        self.fixed_net_buffer = self.fixed_net_buffer._append(pd.DataFrame([[self.state_string,
                                                                             acc_best_val,
                                                                             acc_val_all_epochs,
                                                                             acc_train_all_epochs,

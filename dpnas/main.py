@@ -8,14 +8,14 @@ from time import gmtime, strftime
 import torch
 
 # custom libraries
-from lib.cmdparser import parser
-import lib.Datasets.datasets as datasets
-from lib.MetaQNN.q_learner import QLearner as QLearner
-import lib.Models.state_space_parameters as state_space_parameters
-from lib.Models.initialization import WeightInit
-from lib.Training.train_model import Trainer
-from lib.Utility.visualize import visualize_rolling_reward
-from lib.Utility.utils import get_best_architectures
+from dpnas.lib.cmdparser import parser
+import dpnas.lib.Datasets.datasets as datasets
+from dpnas.lib.MetaQNN.q_learner import QLearner as QLearner
+import dpnas.lib.Models.state_space_parameters as state_space_parameters
+from dpnas.lib.Models.initialization import WeightInit
+from dpnas.lib.Training.train_model import Trainer
+from dpnas.lib.Utility.visualize import visualize_rolling_reward
+from dpnas.lib.Utility.utils import get_best_architectures
 
 
 def main():
