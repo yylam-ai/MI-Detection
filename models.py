@@ -51,10 +51,11 @@ def cnn1D_model(inpt_dim, kernel_size = 5, filter_size = 8, learning_rate = 1e-1
     return model
 
 class DPNASTorchModel(BaseEstimator, ClassifierMixin):
-    def __init__(self, model, lr=0.01, epochs=10):
+    def __init__(self, model, lr=0.01, epochs=10, batch_size=2):
         self.lr = lr
         self.epochs = epochs
         self.model = model
+        self.batch_size = batch_size
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
@@ -62,7 +63,7 @@ class DPNASTorchModel(BaseEstimator, ClassifierMixin):
         X_tensor = torch.tensor(X, dtype=torch.float32)
         y_tensor = torch.tensor(y, dtype=torch.long)
         dataset = TensorDataset(X_tensor, y_tensor)
-        dataloader = DataLoader(dataset, batch_size=2, shuffle=True)
+        dataloader = DataLoader(dataset, self.batch_size, shuffle=True)
 
         for _ in range(self.epochs):
             for batch_X, batch_y in dataloader:
@@ -103,7 +104,8 @@ def dpnas_train(model: Net, X_train, y_train: np.ndarray, REFIT: str):
   classifier = DPNASTorchModel(model.classifier)
   param_grid = {
       'lr': [0.001, 0.01, 0.1],
-      'epochs': [10, 20]
+      'epochs': [10, 20, 30, 40, 50],
+      'batch_size': [1, 2, 4, 8],
   }
   grid_search = GridSearchCV(estimator = classifier, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
   grid_search = grid_search.fit(X_train, y_train)
