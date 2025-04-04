@@ -225,3 +225,11 @@ class Net(nn.Module):
         # the model encoder and classifier are treated separately in training, so we only use the encoder to
         # automatically forward here.
         return x
+
+class NetComplete(Net):
+    def forward(self, x):
+        x = self.feature_extractor(x).view(x.size(0), -1)
+
+        x = self.classifier(x)
+
+        return x
