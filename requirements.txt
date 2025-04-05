@@ -67,6 +67,7 @@ setuptools==78.1.0
 six==1.17.0
 sktime==0.36.0
 sympy==1.13.1
+tabulate==0.9.0
 termcolor==2.5.0
 threadpoolctl==3.6.0
 tifffile==2025.3.30
