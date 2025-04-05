@@ -252,7 +252,7 @@ for f in range(0,5):
                 model = OptiCNNTorchModel(net)
 
                 best_model, best_parameters = CNN_opti_train(model, x_train, y_train, REFIT[j])
-                score = best_model.predict(x_test_emb)
+                score = best_model.predict(x_test)
                 
                 CM = confusion_matrix(y_test, score)
                 metrics = performance_metrics(CM)
