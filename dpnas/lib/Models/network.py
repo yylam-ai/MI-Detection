@@ -226,7 +226,7 @@ class Net(nn.Module):
         # automatically forward here.
         return x
 
-class NetComplete(Net):
+class FullNet(Net):
     def forward(self, x):
         x = self.feature_extractor(x).view(x.size(0), -1)
 

@@ -15,7 +15,7 @@ from sktime.transformations.panel.rocket import MultiRocket
 from sklearn.linear_model import RidgeClassifierCV
 
 from dpnas.lib.MetaQNN.q_learner import QLearner as QLearner
-from dpnas.lib.Models.network import Net, NetComplete
+from dpnas.lib.Models.network import Net, FullNet
 
 from sklearn.base import BaseEstimator, ClassifierMixin
 import torch
@@ -50,7 +50,7 @@ def cnn1D_model(inpt_dim, kernel_size = 5, filter_size = 8, learning_rate = 1e-1
     
     return model
 
-class TorchModel(BaseEstimator, ClassifierMixin):
+class DpClassifierTorchModel(BaseEstimator, ClassifierMixin):
     def __init__(self, model, lr=0.01, epochs=10, batch_size=2):
         self.lr = lr
         self.epochs = epochs
@@ -58,7 +58,7 @@ class TorchModel(BaseEstimator, ClassifierMixin):
         self.batch_size = batch_size
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
-
+      
     def fit(self, X, y):
         X_tensor = torch.tensor(X, dtype=torch.float32)
         y_tensor = torch.tensor(y, dtype=torch.long)
@@ -86,7 +86,7 @@ class TorchModel(BaseEstimator, ClassifierMixin):
           outputs = self.model(X_tensor)
       return outputs.numpy()
   
-class BestCNNTorchModel(BaseEstimator, ClassifierMixin):
+class OptiCNNTorchModel(BaseEstimator, ClassifierMixin):
   def __init__(self, model, lr=0.01, epochs=10, batch_size=2):
       self.lr = lr
       self.epochs = epochs
@@ -121,7 +121,7 @@ class BestCNNTorchModel(BaseEstimator, ClassifierMixin):
         outputs = self.model(X_tensor)
     return outputs.numpy() 
 
-def dp_classifier_model(X_train: np.ndarray):
+def init_dp_classifier_model(X_train: np.ndarray):
    X_train_init = X_train[:2]
    X_train_init = torch.tensor(X_train_init)
 
@@ -133,7 +133,7 @@ def dp_classifier_model(X_train: np.ndarray):
    
    return model
 
-def best_CNN_model(X_train: np.ndarray):
+def init_CNN_opti_model(X_train: np.ndarray):
    X_train_init = X_train[:2]
    X_train_init = torch.tensor(X_train_init)
 
@@ -141,33 +141,32 @@ def best_CNN_model(X_train: np.ndarray):
    args = SimpleNamespace(**{"early_stopping_thresh": 0.15, "patch_size": 12, "task": 2, "net": state_string})
    q_learner = QLearner(args, 2, "")
    q_learner.generate_fixed_net_states_from_string(state_string)
-   model = NetComplete(q_learner.state_list, 2, X_train_init, 1e-4, 0)
+   model = FullNet(q_learner.state_list, 2, X_train_init, 1e-4, 0)
    
    return model
    
 
-def dp_classifier_train(model: Net, X_train, y_train: np.ndarray, REFIT: str):
+### MODEL TRAINING ###
+def dp_classifier_train(model: DpClassifierTorchModel, X_train, y_train: np.ndarray, REFIT: str):
   print('...Training DP Classfier...')
-  classifier = TorchModel(model.classifier)
   param_grid = {
       'lr': [0.001, 0.01, 0.1],
       'epochs': [10, 20, 30, 40, 50],
       'batch_size': [1, 2, 4, 8],
   }
-  grid_search = GridSearchCV(estimator = classifier, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
+  grid_search = GridSearchCV(estimator = model, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
   grid_search = grid_search.fit(X_train, y_train)
   
   return grid_search.best_estimator_, grid_search.best_params_
    
-def best_CNN_train(model: Net, X_train, y_train: np.ndarray, REFIT: str):
+def CNN_opti_train(model: OptiCNNTorchModel, X_train, y_train: np.ndarray, REFIT: str):
   print('...Training Optimal CNN...')
-  classifier = BestCNNTorchModel(model)
   param_grid = {
       'lr': [0.001, 0.01, 0.1],
       'epochs': [10, 20, 30, 40, 50],
       'batch_size': [1, 2, 4, 8],
   }
-  grid_search = GridSearchCV(estimator = classifier, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
+  grid_search = GridSearchCV(estimator = model, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
   grid_search = grid_search.fit(X_train, y_train)
   
   return grid_search.best_estimator_, grid_search.best_params_
