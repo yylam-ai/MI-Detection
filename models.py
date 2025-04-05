@@ -1,9 +1,7 @@
 import os
+import math
 import copy
 import numpy as np
-from keras import layers, Model
-from keras import optimizers
-from scikeras.wrappers import KerasClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 
@@ -33,26 +31,167 @@ Scoring = {'AUC':'roc_auc', 'Accuracy':'accuracy', 'Recall': 'recall', 'F1-Score
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def cnn1D_model(inpt_dim, kernel_size = 5, filter_size = 8, learning_rate = 1e-1):
-    inputs = layers.Input(shape=(inpt_dim, 1))
-    x = layers.Convolution1D(filters=filter_size, kernel_size=kernel_size, padding='same', activation='relu')(inputs)
-    x = layers.MaxPooling1D(pool_size=2, strides=2)(x)
-    x = layers.Convolution1D(filters=int(filter_size / 2), kernel_size=kernel_size, padding='same', activation='relu')(x)
-    x = layers.MaxPooling1D(pool_size=2, strides=2)(x)
-    
-    x = layers.Flatten()(x)
-    
-    flattened_dim = x.shape[1] 
-    xx = int(flattened_dim - ((flattened_dim - 1) / 2))
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+from torch.utils.data import TensorDataset, DataLoader
 
-    x = layers.Dense(xx, activation='relu')(x)
-    outputs = layers.Dense(1, activation='sigmoid')(x)
+class CNN1DModel(nn.Module):
+    def __init__(self, inpt_dim, kernel_size=5, filter_size=8):
+        super().__init__()
+        self.inpt_dim = inpt_dim
+        self.kernel_size = kernel_size
+        self.filter_size = filter_size
 
-    model = Model(inputs, outputs)
-    opti = optimizers.Adam(learning_rate = learning_rate)
-    model.compile(loss = 'binary_crossentropy', optimizer = opti, metrics = ['accuracy'])
-    
-    return model
+        padding_val = (kernel_size - 1) // 2
+
+        self.conv_layers = nn.Sequential(
+            nn.Conv1d(in_channels=1, out_channels=filter_size,
+                      kernel_size=kernel_size, padding=padding_val),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=2),
+            nn.Conv1d(in_channels=filter_size, out_channels=int(filter_size / 2),
+                      kernel_size=kernel_size, padding=padding_val),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2, stride=2)
+        )
+
+        with torch.no_grad():
+            dummy_input = torch.zeros(1, 1, self.inpt_dim)
+            flattened_output = self.conv_layers(dummy_input)
+            self.flattened_dim = flattened_output.numel() # Simpler way
+
+        xx = (self.flattened_dim + 1) // 2
+
+        self.fc_layers = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(self.flattened_dim, xx),
+            nn.ReLU(),
+            nn.Linear(xx, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        if x.dim() == 2:
+            x = x.unsqueeze(1) 
+        elif x.dim() == 3 and x.shape[1] != 1:
+             raise ValueError(f"Input tensor should have 1 channel, but got {x.shape[1]}")
+
+        x = x.to(next(self.parameters()).device)
+
+        x = self.conv_layers(x)
+        x = self.fc_layers(x)
+        return x
+
+class PyTorchCNNWrapper(BaseEstimator, ClassifierMixin):
+    def __init__(self, inpt_dim, kernel_size=5, filter_size=8, learning_rate=1e-1,
+                 epochs=50, batch_size=64, verbose=0, device=None):
+        self.inpt_dim = inpt_dim
+        self.kernel_size = kernel_size
+        self.filter_size = filter_size
+        self.learning_rate = learning_rate
+        self.epochs = epochs
+        self.batch_size = batch_size
+        self.verbose = verbose
+        self.device = device
+
+        self.model_ = None
+        self.optimizer_ = None
+        self.criterion_ = None
+        self.classes_ = None
+        self.device_ = None 
+
+    def _determine_device(self):
+        if self.device:
+            return torch.device(self.device)
+        else:
+            return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    def fit(self, X, y):
+        self.device_ = self._determine_device()
+        if self.verbose > 0:
+            print(f"Using device: {self.device_}")
+
+        # Store classes found in y
+        self.classes_ = np.unique(y)
+        if len(self.classes_) != 2:
+             raise ValueError("This wrapper currently supports binary classification only.")
+
+        X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device_)
+        y_tensor = torch.tensor(y, dtype=torch.float32).reshape(-1, 1).to(self.device_)
+
+        self.model_ = CNN1DModel(
+            inpt_dim=self.inpt_dim,
+            kernel_size=self.kernel_size,
+            filter_size=self.filter_size
+        ).to(self.device_)
+
+        self.optimizer_ = optim.Adam(self.model_.parameters(), lr=self.learning_rate)
+        self.criterion_ = nn.BCELoss()
+
+        dataset = TensorDataset(X_tensor, y_tensor)
+        loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+
+        self.model_.train()
+        for epoch in range(self.epochs):
+            epoch_loss = 0.0
+            num_batches = 0
+            for batch_X, batch_y in loader:
+                batch_X, batch_y = batch_X.to(self.device_), batch_y.to(self.device_)
+
+                self.optimizer_.zero_grad()
+
+                outputs = self.model_(batch_X)
+
+                loss = self.criterion_(outputs, batch_y)
+
+                loss.backward()
+                self.optimizer_.step()
+
+                epoch_loss += loss.item()
+                num_batches += 1
+
+            avg_epoch_loss = epoch_loss / num_batches
+            if self.verbose > 1 and (epoch + 1) % 10 == 0: # Print every 10 epochs if verbose > 1
+                print(f'Epoch [{epoch+1}/{self.epochs}], Loss: {avg_epoch_loss:.4f}')
+            elif self.verbose == 1 and (epoch + 1) == self.epochs: # Print final loss if verbose == 1
+                 print(f'Epoch [{epoch+1}/{self.epochs}], Loss: {avg_epoch_loss:.4f}')
+
+        return self
+
+    def predict_proba(self, X):
+        if not self.model_:
+            raise RuntimeError("Model has not been fitted yet.")
+
+        self.model_.eval()
+        X_tensor = torch.tensor(X, dtype=torch.float32).to(self.device_)
+
+        all_probas = []
+        num_samples = X_tensor.shape[0]
+        num_batches = math.ceil(num_samples / self.batch_size)
+
+        with torch.no_grad():
+            for i in range(num_batches):
+                start_idx = i * self.batch_size
+                end_idx = min((i + 1) * self.batch_size, num_samples)
+                batch_X = X_tensor[start_idx:end_idx]
+
+                outputs = self.model_(batch_X)
+                all_probas.append(outputs.cpu().numpy()) # Move back to CPU for numpy
+
+        probas_pos_class = np.vstack(all_probas) # Shape: (n_samples, 1)
+
+        probas_neg_class = 1.0 - probas_pos_class
+        proba_matrix = np.hstack((probas_neg_class, probas_pos_class))
+
+        return proba_matrix
+
+    def predict(self, X):
+        probas = self.predict_proba(X)
+        return self.classes_[np.argmax(probas, axis=1)]
+
+
 
 class DpClassifierTorchModel(BaseEstimator, ClassifierMixin):
     def __init__(self, base_model, lr=0.01, epochs=10, batch_size=2):
@@ -198,15 +337,42 @@ def CNN_opti_train(model: OptiCNNTorchModel, X_train, y_train: np.ndarray, REFIT
   return grid_search.best_estimator_, grid_search.best_params_
 
 def CNN_train(X_train: np.ndarray, y_train: np.ndarray, REFIT: str):
-    print('...Training...')    
-    model = KerasClassifier(build_fn = cnn1D_model, inpt_dim = X_train.shape[1], kernel_size = 5, filter_size = 8, learning_rate = 1e-1) 
-    kernel_size = [3, 5, 7, 9, 11, 13, 15]
-    filter_size = [4, 8, 12, 16, 24, 32]
-    learning_rate = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7]
-    param_grid = dict(kernel_size = kernel_size, filter_size = filter_size, learning_rate = learning_rate,  epochs = [25, 50, 75, 100])
-    grid_search = GridSearchCV(estimator = model, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
-    grid_search = grid_search.fit(X_train, y_train)
-    
+    print('...Training CNN...')
+
+    X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+    y_train_tensor = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
+    X_train_tensor = X_train_tensor.permute(0, 2, 1)
+
+    model = PyTorchCNNWrapper(
+        inpt_dim=X_train.shape[1],
+        kernel_size=5,
+        filter_size=8,
+        learning_rate=1e-1,
+        epochs=50,
+        batch_size=64,
+        verbose=0
+    )
+
+    param_grid = {
+        'kernel_size': [3, 5, 7, 9, 11, 13, 15],
+        'filter_size': [4, 8, 12, 16, 24, 32],
+        'learning_rate': [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7],
+        'epochs': [25, 50, 75, 100]
+    }
+
+    # --- GridSearchCV ---
+    grid_search = GridSearchCV(
+        estimator=model,
+        param_grid=param_grid,
+        scoring=Scoring,
+        refit=REFIT,
+        cv=5,
+        n_jobs=-1, 
+        verbose=3
+    )
+
+    grid_search.fit(X_train_tensor, y_train_tensor)
+
     return grid_search.best_estimator_, grid_search.best_params_
 
 
