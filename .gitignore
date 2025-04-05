@@ -172,7 +172,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-test__.py
+___**.py
 .DS_Store
 
 runs

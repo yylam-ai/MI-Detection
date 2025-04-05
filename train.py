@@ -17,6 +17,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = args['gpu']
 if not os.path.exists(os.path.join(os.getcwd(),'output', 'matrices')): os.makedirs(os.path.join(os.getcwd(),'output', 'matrices'))
 
 MODEL = ['SVM', 'DT', 'KNN', 'RF', 'MiniRocket', 'MultiRocket', 'dpClassifier', 'dpOptimalCNN']
+MODEL = ['dpClassifier']
 REFIT= ['AUC']
 
 X_train = np.load(os.path.join(args['dataPath'], 'x_train_' + args['view'] + '.npy'))
@@ -213,10 +214,12 @@ for f in range(0,5):
                 x_test = x_test.reshape(x_test.shape[0], 1, x_test.shape[1])
 
                 net = init_dp_classifier_model(x_train)
-                model = DpClassifierTorchModel(net.classifier)
+                base_model = net.classifier
+                model = DpClassifierTorchModel(base_model=base_model)
 
                 x_train_emb = net.feature_extractor(torch.tensor(x_train, dtype=torch.float32))
                 x_test_emb = net.feature_extractor(torch.tensor(x_test, dtype=torch.float32))
+                x_train_emb = x_train_emb.view(x_train_emb.shape[0], -1)
                 x_test_emb = x_test_emb.view(x_test_emb.shape[0], -1)
 
                 best_model, best_parameters = dp_classifier_train(model, x_train_emb, y_train, REFIT[j])

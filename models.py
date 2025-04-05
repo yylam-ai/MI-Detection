@@ -1,4 +1,5 @@
 import os
+import copy
 import numpy as np
 from keras import layers, Model
 from keras import optimizers
@@ -22,6 +23,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
+import torch.nn.functional as F
 
 from types import SimpleNamespace
 
@@ -53,15 +55,24 @@ def cnn1D_model(inpt_dim, kernel_size = 5, filter_size = 8, learning_rate = 1e-1
     return model
 
 class DpClassifierTorchModel(BaseEstimator, ClassifierMixin):
-    def __init__(self, model, lr=0.01, epochs=10, batch_size=2):
+    def __init__(self, base_model, lr=0.01, epochs=10, batch_size=2):
+        self.base_model = base_model
         self.lr = lr
         self.epochs = epochs
-        self.model = model.to(DEVICE)
         self.batch_size = batch_size
+    
+
+    def fit(self, X, y):
+        # Create a fresh clone of the classifier for each fit call
+        self.model = copy.deepcopy(self.base_model).to(DEVICE)
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
-    def fit(self, X, y):
+        y_np = np.asarray(y)
+        # Store unique classes found in the target variable y
+        self.classes_ = np.unique(y_np)
+        self.n_classes_ = len(self.classes_)
+        
         X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
         y_tensor = torch.tensor(y, dtype=torch.long).to(DEVICE)
         dataset = TensorDataset(X_tensor, y_tensor)
@@ -71,7 +82,6 @@ class DpClassifierTorchModel(BaseEstimator, ClassifierMixin):
         for _ in range(self.epochs):
             for batch_X, batch_y in dataloader:
                 self.optimizer.zero_grad()
-                batch_X = batch_X.view(batch_X.shape[0], -1)  # Flatten if needed
                 outputs = self.model(batch_X)
                 loss = self.criterion(outputs, batch_y)
                 loss.backward()
@@ -81,18 +91,18 @@ class DpClassifierTorchModel(BaseEstimator, ClassifierMixin):
     def predict(self, X):
         self.model.eval()
         X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
-        X_tensor = X_tensor.view(X_tensor.shape[0], -1)
         with torch.no_grad():
             outputs = self.model(X_tensor)
-        return torch.argmax(outputs, axis=1).cpu().numpy()
+        return torch.argmax(outputs, dim=1).cpu().numpy()
 
     def predict_proba(self, X):
         self.model.eval()
         X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
-        X_tensor = X_tensor.view(X_tensor.shape[0], -1)
         with torch.no_grad():
             outputs = self.model(X_tensor)
-        return outputs.cpu().numpy()
+            # Apply softmax to convert logits to probabilities
+            probs = F.softmax(outputs, dim=1)
+        return probs.cpu().numpy()
   
 class OptiCNNTorchModel(BaseEstimator, ClassifierMixin):
   def __init__(self, model, lr=0.01, epochs=10, batch_size=2):
@@ -103,7 +113,7 @@ class OptiCNNTorchModel(BaseEstimator, ClassifierMixin):
       self.batch_size = batch_size
       self.criterion = nn.CrossEntropyLoss()
       self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
-
+    
   def fit(self, X, y):
       X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
       y_tensor = torch.tensor(y, dtype=torch.long).to(DEVICE)
@@ -165,7 +175,7 @@ def dp_classifier_train(model: DpClassifierTorchModel, X_train, y_train: np.ndar
       'epochs': [10, 20, 30, 40, 50],
       'batch_size': [1, 2, 4, 8],
   }
-  grid_search = GridSearchCV(estimator = model, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
+  grid_search = GridSearchCV(estimator = model, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5, verbose=3)
   grid_search = grid_search.fit(X_train, y_train)
   
   return grid_search.best_estimator_, grid_search.best_params_
@@ -177,7 +187,7 @@ def CNN_opti_train(model: OptiCNNTorchModel, X_train, y_train: np.ndarray, REFIT
       'epochs': [10, 20, 30, 40, 50],
       'batch_size': [1, 2, 4, 8],
   }
-  grid_search = GridSearchCV(estimator = model, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5)
+  grid_search = GridSearchCV(estimator = model, n_jobs = -1, param_grid = param_grid, scoring = Scoring, refit = REFIT, cv = 5, verbose=3)
   grid_search = grid_search.fit(X_train, y_train)
   
   return grid_search.best_estimator_, grid_search.best_params_
