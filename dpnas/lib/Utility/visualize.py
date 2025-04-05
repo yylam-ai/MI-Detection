@@ -100,11 +100,11 @@ def visualize_rolling_reward(csv_path=None, replay_dict=None, num_arch=1, save_p
         item.set_fontsize(fontsize - 4)
         item.set_fontweight('bold')
 
-    plt.ylabel('Moving average reward', fontsize=fontsize, fontweight='bold')
-    plt.xlabel('Architecture index', fontsize=fontsize, fontweight='bold')
-    plt.title('DP-NAS', fontsize=titlesize, y=1.05, fontweight='bold')
+    # plt.ylabel('Moving average reward', fontsize=fontsize, fontweight='bold')
+    # plt.xlabel('Architecture index', fontsize=fontsize, fontweight='bold')
+    # plt.title('DP-NAS', fontsize=titlesize, y=1.05, fontweight='bold')
 
-    plt.tight_layout()
-    print('SAVING: plot moving reward average')
-    plt.savefig(save_path + '/MetaQNN_moving_avg_epoch_' + str(num_arch) + '.pdf')
-    plt.close(fig)
+    # plt.tight_layout()
+    # print('SAVING: plot moving reward average')
+    # plt.savefig(save_path + '/MetaQNN_moving_avg_epoch_' + str(num_arch) + '.pdf')
+    # plt.close(fig)
