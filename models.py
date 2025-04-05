@@ -115,6 +115,11 @@ class OptiCNNTorchModel(BaseEstimator, ClassifierMixin):
       self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
     
   def fit(self, X, y):
+      y_np = np.asarray(y)
+      # Store unique classes found in the target variable y
+      self.classes_ = np.unique(y_np)
+      self.n_classes_ = len(self.classes_)
+      
       X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
       y_tensor = torch.tensor(y, dtype=torch.long).to(DEVICE)
       dataset = TensorDataset(X_tensor, y_tensor)
