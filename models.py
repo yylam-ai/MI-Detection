@@ -336,15 +336,11 @@ def CNN_opti_train(model: OptiCNNTorchModel, X_train, y_train: np.ndarray, REFIT
   
   return grid_search.best_estimator_, grid_search.best_params_
 
-def CNN_train(X_train: np.ndarray, y_train: np.ndarray, REFIT: str):
+def CNN_train(X_train_tensor: torch.Tensor, y_train_tensor: torch.Tensor, REFIT: str):
     print('...Training CNN...')
 
-    X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
-    y_train_tensor = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
-    X_train_tensor = X_train_tensor.permute(0, 2, 1)
-
     model = PyTorchCNNWrapper(
-        inpt_dim=X_train.shape[1],
+        inpt_dim=X_train_tensor.shape[2],
         kernel_size=5,
         filter_size=8,
         learning_rate=1e-1,
@@ -354,9 +350,9 @@ def CNN_train(X_train: np.ndarray, y_train: np.ndarray, REFIT: str):
     )
 
     param_grid = {
-        'kernel_size': [3, 5, 7, 9, 11, 13, 15],
-        'filter_size': [4, 8, 12, 16, 24, 32],
-        'learning_rate': [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7],
+        'kernel_size': [3, 5, 7, 9],
+        'filter_size': [4, 10, 16],
+        'learning_rate': [1e-1, 1e-2, 1e-3, 1e-4],
         'epochs': [25, 50, 75, 100]
     }
 
