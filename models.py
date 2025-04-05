@@ -29,6 +29,8 @@ os.environ["KMP_WARNINGS"] = "0"
 
 Scoring = {'AUC':'roc_auc', 'Accuracy':'accuracy', 'Recall': 'recall', 'F1-Score': 'f1', 'Precision': 'precision'}
 
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 def cnn1D_model(inpt_dim, kernel_size = 5, filter_size = 8, learning_rate = 1e-1):
     inputs = layers.Input(shape=(inpt_dim, 1))
     x = layers.Convolution1D(filters=filter_size, kernel_size=kernel_size, padding='same', activation='relu')(inputs)
@@ -54,21 +56,22 @@ class DpClassifierTorchModel(BaseEstimator, ClassifierMixin):
     def __init__(self, model, lr=0.01, epochs=10, batch_size=2):
         self.lr = lr
         self.epochs = epochs
-        self.model = model
+        self.model = model.to(DEVICE)
         self.batch_size = batch_size
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
-      
+
     def fit(self, X, y):
-        X_tensor = torch.tensor(X, dtype=torch.float32)
-        y_tensor = torch.tensor(y, dtype=torch.long)
+        X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
+        y_tensor = torch.tensor(y, dtype=torch.long).to(DEVICE)
         dataset = TensorDataset(X_tensor, y_tensor)
         dataloader = DataLoader(dataset, self.batch_size, shuffle=True)
 
+        self.model.train()
         for _ in range(self.epochs):
             for batch_X, batch_y in dataloader:
                 self.optimizer.zero_grad()
-                batch_X = batch_X.view(batch_X.shape[0], -1)  
+                batch_X = batch_X.view(batch_X.shape[0], -1)  # Flatten if needed
                 outputs = self.model(batch_X)
                 loss = self.criterion(outputs, batch_y)
                 loss.backward()
@@ -76,33 +79,41 @@ class DpClassifierTorchModel(BaseEstimator, ClassifierMixin):
         return self
 
     def predict(self, X):
-        X_tensor = torch.tensor(X, dtype=torch.float32)
-        outputs = self.model(X_tensor)
-        return torch.argmax(outputs, axis=1).numpy()
+        self.model.eval()
+        X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
+        X_tensor = X_tensor.view(X_tensor.shape[0], -1)
+        with torch.no_grad():
+            outputs = self.model(X_tensor)
+        return torch.argmax(outputs, axis=1).cpu().numpy()
 
     def predict_proba(self, X):
-      X_tensor = torch.tensor(X, dtype=torch.float32)
-      with torch.no_grad():
-          outputs = self.model(X_tensor)
-      return outputs.numpy()
+        self.model.eval()
+        X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
+        X_tensor = X_tensor.view(X_tensor.shape[0], -1)
+        with torch.no_grad():
+            outputs = self.model(X_tensor)
+        return outputs.cpu().numpy()
   
 class OptiCNNTorchModel(BaseEstimator, ClassifierMixin):
   def __init__(self, model, lr=0.01, epochs=10, batch_size=2):
       self.lr = lr
       self.epochs = epochs
       self.model = model
+      self.model.to(DEVICE)
       self.batch_size = batch_size
       self.criterion = nn.CrossEntropyLoss()
       self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
 
   def fit(self, X, y):
-      X_tensor = torch.tensor(X, dtype=torch.float32)
-      y_tensor = torch.tensor(y, dtype=torch.long)
+      X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
+      y_tensor = torch.tensor(y, dtype=torch.long).to(DEVICE)
       dataset = TensorDataset(X_tensor, y_tensor)
       dataloader = DataLoader(dataset, self.batch_size, shuffle=True)
 
+      self.model.train()
       for _ in range(self.epochs):
           for batch_X, batch_y in dataloader:
+              batch_X, batch_y = batch_X.to(DEVICE), batch_y.to(DEVICE)
               self.optimizer.zero_grad()
               outputs = self.model(batch_X)
               loss = self.criterion(outputs, batch_y)
@@ -111,15 +122,15 @@ class OptiCNNTorchModel(BaseEstimator, ClassifierMixin):
       return self
 
   def predict(self, X):
-      X_tensor = torch.tensor(X, dtype=torch.float32)
+      X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
       outputs = self.model(X_tensor)
-      return torch.argmax(outputs, axis=1).numpy()
+      return torch.argmax(outputs, axis=1).cpu().numpy()
 
   def predict_proba(self, X):
-    X_tensor = torch.tensor(X, dtype=torch.float32)
+    X_tensor = torch.tensor(X, dtype=torch.float32).to(DEVICE)
     with torch.no_grad():
         outputs = self.model(X_tensor)
-    return outputs.numpy() 
+    return outputs.cpu().numpy() 
 
 def init_dp_classifier_model(X_train: np.ndarray):
    X_train_init = X_train[:2]
