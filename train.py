@@ -16,7 +16,7 @@ args = vars(ap.parse_args())
 os.environ["CUDA_VISIBLE_DEVICES"] = args['gpu']
 if not os.path.exists(os.path.join(os.getcwd(),'output', 'matrices')): os.makedirs(os.path.join(os.getcwd(),'output', 'matrices'))
 
-MODEL = ['SVM', 'DT', 'KNN', 'RF', 'MiniRocket', 'MultiRocket', 'dpClassifier', 'optiCNN']
+MODEL = ['SVM', 'DT', 'KNN', 'RF', 'MiniRocket', 'MultiRocket', 'dpClassifier', 'dpOptimalCNN']
 REFIT= ['AUC']
 
 X_train = np.load(os.path.join(args['dataPath'], 'x_train_' + args['view'] + '.npy'))
@@ -242,7 +242,7 @@ for f in range(0,5):
                 np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
                 np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test)
         
-            elif MODEL[i] == 'optiCNN':      
+            elif MODEL[i] == 'dpOptimalCNN':      
                 x_train = np.expand_dims(x_train, axis = -1)
                 x_test = np.expand_dims(x_test, axis = -1)
                 x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
