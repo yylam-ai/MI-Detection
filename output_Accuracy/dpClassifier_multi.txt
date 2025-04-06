@@ -1,0 +1,86 @@
+
+
+
+----------FOLD 0-------------
+
+
+
+Confusion Matrix :[[ 1  8]
+ [ 4 13]]
+
+Scoring:Accuracy
+Sensitivity:76.47058823529412
+Specificity:11.11111111111111
+Precision:61.904761904761905
+F1-Score:68.42105263157895
+F2-Score:73.03370786516854
+Accuracy:53.84615384615385
+Best paramters:{'batch_size': 2, 'epochs': 10, 'lr': 0.001}
+
+
+----------FOLD 1-------------
+
+
+
+Confusion Matrix :[[ 4  5]
+ [ 3 14]]
+
+Scoring:Accuracy
+Sensitivity:82.35294117647058
+Specificity:44.44444444444444
+Precision:73.68421052631578
+F1-Score:77.77777777777779
+F2-Score:80.45977011494251
+Accuracy:69.23076923076923
+Best paramters:{'batch_size': 4, 'epochs': 10, 'lr': 0.001}
+
+
+----------FOLD 2-------------
+
+
+
+Confusion Matrix :[[ 6  2]
+ [ 3 15]]
+
+Scoring:Accuracy
+Sensitivity:83.33333333333334
+Specificity:75.0
+Precision:88.23529411764706
+F1-Score:85.71428571428571
+F2-Score:84.26966292134833
+Accuracy:80.76923076923077
+Best paramters:{'batch_size': 1, 'epochs': 30, 'lr': 0.001}
+
+
+----------FOLD 3-------------
+
+
+
+Confusion Matrix :[[ 3  5]
+ [ 1 17]]
+
+Scoring:Accuracy
+Sensitivity:94.44444444444444
+Specificity:37.5
+Precision:77.27272727272727
+F1-Score:85.0
+F2-Score:90.42553191489361
+Accuracy:76.92307692307693
+Best paramters:{'batch_size': 8, 'epochs': 10, 'lr': 0.001}
+
+
+----------FOLD 4-------------
+
+
+
+Confusion Matrix :[[ 4  4]
+ [ 3 15]]
+
+Scoring:Accuracy
+Sensitivity:83.33333333333334
+Specificity:50.0
+Precision:78.94736842105263
+F1-Score:81.08108108108108
+F2-Score:82.41758241758241
+Accuracy:73.07692307692307
+Best paramters:{'batch_size': 2, 'epochs': 10, 'lr': 0.001}

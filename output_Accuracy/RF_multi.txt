@@ -1,0 +1,86 @@
+
+
+
+----------FOLD 0-------------
+
+
+
+Confusion Matrix :[[ 7  2]
+ [ 6 11]]
+
+Scoring:Accuracy
+Sensitivity:64.70588235294117
+Specificity:77.77777777777779
+Precision:84.61538461538461
+F1-Score:73.33333333333333
+F2-Score:67.90123456790124
+Accuracy:69.23076923076923
+Best paramters:{'bootstrap': True, 'class_weight': 'balanced', 'criterion': 'entropy', 'max_features': 'log2', 'n_estimators': 15, 'warm_start': True}
+
+
+----------FOLD 1-------------
+
+
+
+Confusion Matrix :[[ 6  3]
+ [ 5 12]]
+
+Scoring:Accuracy
+Sensitivity:70.58823529411765
+Specificity:66.66666666666666
+Precision:80.0
+F1-Score:75.0
+F2-Score:72.28915662650604
+Accuracy:69.23076923076923
+Best paramters:{'bootstrap': True, 'class_weight': 'balanced_subsample', 'criterion': 'entropy', 'max_features': 'log2', 'n_estimators': 30, 'warm_start': True}
+
+
+----------FOLD 2-------------
+
+
+
+Confusion Matrix :[[ 6  2]
+ [ 2 16]]
+
+Scoring:Accuracy
+Sensitivity:88.88888888888889
+Specificity:75.0
+Precision:88.88888888888889
+F1-Score:88.88888888888889
+F2-Score:88.88888888888889
+Accuracy:84.61538461538461
+Best paramters:{'bootstrap': False, 'class_weight': 'balanced', 'criterion': 'entropy', 'max_features': 'log2', 'n_estimators': 10, 'warm_start': True}
+
+
+----------FOLD 3-------------
+
+
+
+Confusion Matrix :[[ 4  4]
+ [ 4 14]]
+
+Scoring:Accuracy
+Sensitivity:77.77777777777779
+Specificity:50.0
+Precision:77.77777777777779
+F1-Score:77.77777777777779
+F2-Score:77.77777777777779
+Accuracy:69.23076923076923
+Best paramters:{'bootstrap': False, 'class_weight': 'balanced_subsample', 'criterion': 'entropy', 'max_features': 'log2', 'n_estimators': 30, 'warm_start': True}
+
+
+----------FOLD 4-------------
+
+
+
+Confusion Matrix :[[ 5  3]
+ [ 2 16]]
+
+Scoring:Accuracy
+Sensitivity:88.88888888888889
+Specificity:62.5
+Precision:84.21052631578947
+F1-Score:86.48648648648648
+F2-Score:87.91208791208791
+Accuracy:80.76923076923077
+Best paramters:{'bootstrap': False, 'class_weight': 'balanced', 'criterion': 'entropy', 'max_features': 'sqrt', 'n_estimators': 20, 'warm_start': True}
