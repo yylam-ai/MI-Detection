@@ -131,16 +131,13 @@ for f in range(0,5):
             elif MODEL[i] == 'CNN':      
                 x_train = np.expand_dims(x_train, axis = -1)
                 x_test = np.expand_dims(x_test, axis = -1)
+                y_train = y_train.reshape(-1, 1)
 
-                X_train_tensor = torch.tensor(x_train, dtype=torch.float32)
-                X_test_tensor = torch.tensor(x_test, dtype=torch.float32)
-                y_train_tensor = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
+                x_train = x_train.transpose(0,2,1)
+                x_test = x_test.transpose(0,2,1)
 
-                X_train_tensor = X_train_tensor.permute(0, 2, 1)
-                X_test_tensor = X_test_tensor.permute(0, 2, 1)
-
-                best_model, best_parameters = CNN_train(X_train_tensor, y_train_tensor, REFIT[j])    
-                score = best_model.predict(X_test_tensor)
+                best_model, best_parameters = CNN_train(x_train, y_train, REFIT[j])    
+                score = best_model.predict(x_test)
                 
                 CM = confusion_matrix(y_test, score)
                 metrics = performance_metrics(CM)
