@@ -16,8 +16,8 @@ args = vars(ap.parse_args())
 os.environ["CUDA_VISIBLE_DEVICES"] = args['gpu']
 if not os.path.exists(os.path.join(os.getcwd(),'output', 'matrices')): os.makedirs(os.path.join(os.getcwd(),'output', 'matrices'))
 
-MODEL = ['SVM', 'DT', 'KNN', 'RF', 'MiniRocket', 'MultiRocket', 'CNN', 'dpClassifier']
-REFIT= ['Precision']
+MODEL = ['SVM', 'DT', 'KNN', 'RF', 'MiniRocket', 'MultiRocket', 'CNN', 'dpClassifier', 'nasCNN']
+REFIT= ['Accuracy']
 
 X_train = np.load(os.path.join(args['dataPath'], 'x_train_' + args['view'] + '.npy'))
 X_test = np.load(os.path.join(args['dataPath'], 'x_test_' + args['view'] + '.npy'))
