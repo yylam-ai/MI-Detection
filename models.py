@@ -325,7 +325,7 @@ def dp_classifier_train(model: DpClassifierTorchModel, X_train, y_train: np.ndar
   return grid_search.best_estimator_, grid_search.best_params_
    
 def CNN_opti_train(model: OptiCNNTorchModel, X_train, y_train: np.ndarray, REFIT: str):
-  print('...Training Optimal CNN...')
+  print('...Training NAS Optimal CNN...')
   param_grid = {
       'lr': [0.001, 0.01, 0.1],
       'epochs': [10, 20, 30, 40, 50],
