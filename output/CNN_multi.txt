@@ -6,36 +6,70 @@
 
 
 Confusion Matrix :[[7 2]
- [9 8]]
+ [8 9]]
 
 Scoring:AUC
-Sensitivity:47.05882352941176
+Sensitivity:52.94117647058824
 Specificity:77.77777777777779
-Precision:80.0
-F1-Score:59.25925925925925
-F2-Score:51.28205128205128
-Accuracy:57.692307692307686
-Best paramters:{'epochs': 75, 'filter_size': 10, 'kernel_size': 3, 'learning_rate': 0.01}
+Precision:81.81818181818183
+F1-Score:64.28571428571429
+F2-Score:56.96202531645569
+Accuracy:61.53846153846154
+Best paramters:{'epochs': 75, 'filter_size': 16, 'kernel_size': 5, 'learning_rate': 0.01}
 
 
 ----------FOLD 1-------------
 
 
 
-Confusion Matrix :[[ 2  7]
- [ 0 17]]
+Confusion Matrix :[[ 4  5]
+ [ 5 12]]
 
 Scoring:AUC
-Sensitivity:100.0
-Specificity:22.22222222222222
-Precision:70.83333333333334
-F1-Score:82.92682926829268
-F2-Score:92.3913043478261
-Accuracy:73.07692307692307
-Best paramters:{'epochs': 100, 'filter_size': 10, 'kernel_size': 7, 'learning_rate': 0.001}
+Sensitivity:70.58823529411765
+Specificity:44.44444444444444
+Precision:70.58823529411765
+F1-Score:70.58823529411765
+F2-Score:70.58823529411764
+Accuracy:61.53846153846154
+Best paramters:{'epochs': 100, 'filter_size': 16, 'kernel_size': 9, 'learning_rate': 0.01}
 
 
 ----------FOLD 2-------------
+
+
+
+Confusion Matrix :[[ 4  4]
+ [ 2 16]]
+
+Scoring:AUC
+Sensitivity:88.88888888888889
+Specificity:50.0
+Precision:80.0
+F1-Score:84.21052631578947
+F2-Score:86.95652173913044
+Accuracy:76.92307692307693
+Best paramters:{'epochs': 75, 'filter_size': 16, 'kernel_size': 9, 'learning_rate': 0.001}
+
+
+----------FOLD 3-------------
+
+
+
+Confusion Matrix :[[ 0  8]
+ [ 0 18]]
+
+Scoring:AUC
+Sensitivity:100.0
+Specificity:0.0
+Precision:69.23076923076923
+F1-Score:81.81818181818183
+F2-Score:91.83673469387756
+Accuracy:69.23076923076923
+Best paramters:{'epochs': 100, 'filter_size': 16, 'kernel_size': 7, 'learning_rate': 0.001}
+
+
+----------FOLD 4-------------
 
 
 
@@ -49,38 +83,4 @@ Precision:78.26086956521739
 F1-Score:87.8048780487805
 F2-Score:94.73684210526318
 Accuracy:80.76923076923077
-Best paramters:{'epochs': 100, 'filter_size': 16, 'kernel_size': 5, 'learning_rate': 0.001}
-
-
-----------FOLD 3-------------
-
-
-
-Confusion Matrix :[[ 1  7]
- [ 1 17]]
-
-Scoring:AUC
-Sensitivity:94.44444444444444
-Specificity:12.5
-Precision:70.83333333333334
-F1-Score:80.95238095238095
-F2-Score:88.54166666666667
-Accuracy:69.23076923076923
-Best paramters:{'epochs': 25, 'filter_size': 16, 'kernel_size': 9, 'learning_rate': 0.01}
-
-
-----------FOLD 4-------------
-
-
-
-Confusion Matrix :[[ 6  2]
- [ 3 15]]
-
-Scoring:AUC
-Sensitivity:83.33333333333334
-Specificity:75.0
-Precision:88.23529411764706
-F1-Score:85.71428571428571
-F2-Score:84.26966292134833
-Accuracy:80.76923076923077
-Best paramters:{'epochs': 50, 'filter_size': 10, 'kernel_size': 3, 'learning_rate': 0.01}
+Best paramters:{'epochs': 50, 'filter_size': 16, 'kernel_size': 7, 'learning_rate': 0.001}
