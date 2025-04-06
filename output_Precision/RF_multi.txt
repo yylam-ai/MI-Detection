@@ -1,0 +1,86 @@
+
+
+
+----------FOLD 0-------------
+
+
+
+Confusion Matrix :[[ 7  2]
+ [ 7 10]]
+
+Scoring:Precision
+Sensitivity:58.82352941176471
+Specificity:77.77777777777779
+Precision:83.33333333333334
+F1-Score:68.96551724137932
+F2-Score:62.5
+Accuracy:65.38461538461539
+Best paramters:{'bootstrap': True, 'class_weight': 'balanced_subsample', 'criterion': 'gini', 'max_features': 'sqrt', 'n_estimators': 10, 'warm_start': True}
+
+
+----------FOLD 1-------------
+
+
+
+Confusion Matrix :[[ 6  3]
+ [ 5 12]]
+
+Scoring:Precision
+Sensitivity:70.58823529411765
+Specificity:66.66666666666666
+Precision:80.0
+F1-Score:75.0
+F2-Score:72.28915662650604
+Accuracy:69.23076923076923
+Best paramters:{'bootstrap': True, 'class_weight': 'balanced', 'criterion': 'gini', 'max_features': 'sqrt', 'n_estimators': 10, 'warm_start': True}
+
+
+----------FOLD 2-------------
+
+
+
+Confusion Matrix :[[ 6  2]
+ [ 2 16]]
+
+Scoring:Precision
+Sensitivity:88.88888888888889
+Specificity:75.0
+Precision:88.88888888888889
+F1-Score:88.88888888888889
+F2-Score:88.88888888888889
+Accuracy:84.61538461538461
+Best paramters:{'bootstrap': False, 'class_weight': 'balanced', 'criterion': 'entropy', 'max_features': 'log2', 'n_estimators': 10, 'warm_start': True}
+
+
+----------FOLD 3-------------
+
+
+
+Confusion Matrix :[[ 3  5]
+ [ 1 17]]
+
+Scoring:Precision
+Sensitivity:94.44444444444444
+Specificity:37.5
+Precision:77.27272727272727
+F1-Score:85.0
+F2-Score:90.42553191489361
+Accuracy:76.92307692307693
+Best paramters:{'bootstrap': True, 'class_weight': 'balanced', 'criterion': 'gini', 'max_features': 'sqrt', 'n_estimators': 10, 'warm_start': False}
+
+
+----------FOLD 4-------------
+
+
+
+Confusion Matrix :[[ 5  3]
+ [ 2 16]]
+
+Scoring:Precision
+Sensitivity:88.88888888888889
+Specificity:62.5
+Precision:84.21052631578947
+F1-Score:86.48648648648648
+F2-Score:87.91208791208791
+Accuracy:80.76923076923077
+Best paramters:{'bootstrap': False, 'class_weight': 'balanced', 'criterion': 'entropy', 'max_features': 'sqrt', 'n_estimators': 20, 'warm_start': True}
