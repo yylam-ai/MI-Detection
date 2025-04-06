@@ -47,4 +47,22 @@ You can run this project in Google Colab by clicking this [link](https://colab.r
 - Ensure you have Python installed before proceeding.
 - Run `deactivate` to exit the virtual environment when done.
 
+# Neural Architecture Search of Deep Priors (DP-NAS)
+This work is based on [DP-NAS](https://github.com/ccc-frankfurt/DP-NAS), the implementation is  modified for MI-detection task.
+
+### NAS for deep-prior
+```
+python dpnas/main.py --dataset MI -b 8 --patch-size 12 -pf 4 -lr 1e-4 --epochs 50
+```
+
+### NAS for CNN
+```
+python dpnas/main.py --dataset MI -b 8 --patch-size 12 -pf 4 -lr 1e-4 --epochs 50 --full-training true
+```
+### Training individual or a set of best architectures from the search
+By default this will run the experiment, i.e. it will pick 6 low performing, 6 medium range and 6 top performing deep priors, resample the weights and train classifiers on top in order to gauge the variability when weights are re-sampled.
+```
+python dpnas/main.py -t 2 --dataset MI -b 8 --patch-size 12 -pf 4 -lr 1e-4 --epochs 50 --replay-buffer-csv-path <path>
+```
+After that, the best performing architecture may be selected manually and used to train the MI-dataset using K-fold cross-validation and evaluated accordingly.
 
