@@ -38,7 +38,7 @@ def extract_metrics(file_path):
 
 # calculate average metric score across folds
 if __name__ == "__main__":
-    dir_path = "output"
+    dir_path = "output_filter_sensitivity"
     file_paths = []
     for f_name in os.listdir(dir_path):
         file_path = os.path.join(dir_path, f_name)
@@ -48,5 +48,5 @@ if __name__ == "__main__":
 
     all_results = pd.concat([extract_metrics(fp) for fp in file_paths], ignore_index=True)
 
-    print(f"{'='*20} Average pefromance results computed from 5-fold {'='*20}")
+    print(f"{'='*20} Average peformance results computed from 5-fold {'='*20}")
     print(tabulate(all_results, headers='keys', tablefmt='grid'))
