@@ -1,0 +1,88 @@
+
+
+----------FOLD 0-------------
+
+
+
+Confusion Matrix :[[ 7  2]
+ [ 6 11]]
+
+Scoring:Recall
+Sensitivity:64.70588235294117
+Specificity:77.77777777777779
+Precision:84.61538461538461
+F1-Score:73.33333333333333
+F2-Score:67.90123456790124
+Accuracy:69.23076923076923
+Best paramters:{'bootstrap': True, 'class_weight': 'balanced', 'criterion': 'gini', 'max_features': 'sqrt', 'n_estimators': 25, 'warm_start': True}
+
+----------FOLD 1-------------
+
+
+
+Confusion Matrix :[[ 6  3]
+ [ 5 12]]
+
+Scoring:AUC
+Sensitivity:70.58823529411765
+Specificity:66.66666666666666
+Precision:80.0
+F1-Score:75.0
+F2-Score:72.28915662650604
+Accuracy:69.23076923076923
+Best paramters:{'bootstrap': True, 'class_weight': 'balanced_subsample', 'criterion': 'entropy', 'max_features': 'sqrt', 'n_estimators': 15, 'warm_start': False}
+
+
+
+----------FOLD 2-------------
+
+
+
+Confusion Matrix :[[ 7  1]
+ [ 1 17]]
+
+Scoring:Recall
+Sensitivity:94.44444444444444
+Specificity:87.5
+Precision:94.44444444444444
+F1-Score:94.44444444444444
+F2-Score:94.44444444444444
+Accuracy:92.3076923076923
+Best paramters:{'bootstrap': True, 'class_weight': 'balanced_subsample', 'criterion': 'entropy', 'max_features': 'log2', 'n_estimators': 35, 'warm_start': True}
+
+
+
+
+----------FOLD 3-------------
+
+
+
+Confusion Matrix :[[ 5  3]
+ [ 4 14]]
+
+Scoring:Recall
+Sensitivity:77.77777777777779
+Specificity:62.5
+Precision:82.35294117647058
+F1-Score:80.0
+F2-Score:78.65168539325842
+Accuracy:73.07692307692307
+Best paramters:{'bootstrap': False, 'class_weight': 'balanced_subsample', 'criterion': 'entropy', 'max_features': 'log2', 'n_estimators': 15, 'warm_start': False}
+
+
+
+----------FOLD 4-------------
+
+
+
+Confusion Matrix :[[ 6  2]
+ [ 2 16]]
+
+Scoring:AUC
+Sensitivity:88.88888888888889
+Specificity:75.0
+Precision:88.88888888888889
+F1-Score:88.88888888888889
+F2-Score:88.88888888888889
+Accuracy:84.61538461538461
+Best paramters:{'bootstrap': False, 'class_weight': 'balanced', 'criterion': 'entropy', 'max_features': 'log2', 'n_estimators': 35, 'warm_start': True}
