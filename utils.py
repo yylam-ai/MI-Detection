@@ -38,7 +38,7 @@ def extract_metrics(file_path):
 
 # calculate average metric score across folds
 if __name__ == "__main__":
-    dir_path = "output_filter_sensitivity"
+    dir_path = "output"
     file_paths = []
     for f_name in os.listdir(dir_path):
         file_path = os.path.join(dir_path, f_name)
