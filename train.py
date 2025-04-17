@@ -16,7 +16,8 @@ args = vars(ap.parse_args())
 os.environ["CUDA_VISIBLE_DEVICES"] = args['gpu']
 if not os.path.exists(os.path.join(os.getcwd(),'output', 'matrices')): os.makedirs(os.path.join(os.getcwd(),'output', 'matrices'))
 
-MODEL = ['SVM', 'DT', 'KNN', 'RF', 'MiniRocket', 'MultiRocket', 'CNN', 'dpClassifier', 'nasCNN']
+
+MODEL = ['SVM', 'DT', 'KNN', 'RF', 'MiniRocket', 'MultiRocket', 'CNN', 'dpClassifier', 'nasCNN', 'GNN']
 REFIT= ['AUC', 'Accuracy', 'Recall', 'F1-Score', 'Precision']
 
 X_train = np.load(os.path.join(args['dataPath'], 'x_train_' + args['view'] + '.npy'))
@@ -255,10 +256,31 @@ for f in range(0,5):
                 x_train = x_train.reshape(x_train.shape[0], 1, x_train.shape[1])
                 x_test = x_test.reshape(x_test.shape[0], 1, x_test.shape[1])
 
-                net = init_CNN_opti_model(x_train)
-                model = OptiCNNTorchModel(net)
-
                 best_model, best_parameters = CNN_opti_train(model, x_train, y_train, REFIT[j])
+                score = best_model.predict(x_test)
+                
+                CM = confusion_matrix(y_test, score)
+                metrics = performance_metrics(CM)
+                
+                #Save the results
+                text_file = open(os.path.join(args['outputPath'], MODEL[i] + '_' + args['view'] + '.txt'), "a")
+                text_file.write ("\n\n\n----------FOLD " + str(f) + "-------------\n")
+                text_file.write("\n\n\nConfusion Matrix :" + str(CM) + "\n")
+                text_file.write ("\nScoring:" + REFIT[j])
+                text_file.write ("\nSensitivity:" + str(metrics[0]))
+                text_file.write ("\nSpecificity:" + str(metrics[1]))
+                text_file.write("\nPrecision:" + str(metrics[2]))
+                text_file.write ("\nF1-Score:" + str(metrics[3]))
+                text_file.write ("\nF2-Score:" + str(metrics[4]))   
+                text_file.write("\nAccuracy:" + str(metrics[5]))
+                text_file.write('\nBest paramters:' + str(best_parameters))
+                text_file.close()
+                
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] +'_score_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), score)
+                np.save(os.path.join(os.path.join(os.getcwd(), 'output', 'matrices'), args['view'] + '_y_test_' + MODEL[i] + '_' + REFIT[j] + '_fold' + str(f) + '.npy'), y_test)
+        
+            elif MODEL[i] == 'GNN':      
+                best_model, best_parameters = GNN_train(x_train, y_train, REFIT[j])
                 score = best_model.predict(x_test)
                 
                 CM = confusion_matrix(y_test, score)
