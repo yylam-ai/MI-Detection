@@ -50,7 +50,7 @@ def train(dataset, n_channels=1, n_classes=2, out_pth=None, model_name='unet', f
 
         metrics[i] = []
 
-        hmc_loader = {x: DataLoader(dataset[i][x], batch_size=1, shuffle=True, num_workers=4, pin_memory=True)
+        hmc_loader = {x: DataLoader(dataset[i][x], batch_size=1, shuffle=True, pin_memory=True)
                       for x in ['train', 'valid']
                       }
 
