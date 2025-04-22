@@ -12,7 +12,7 @@ from model.unet import Unet
 import hmc_load
 from sklearn.model_selection import train_test_split, KFold
 from metrics import batch_metric, accuracy, precision, recall, f_score, specificity
-
+import argparse 
 
 
 def train(dataset, n_channels=1, n_classes=2, out_pth=None, model_name='unet', folds=5, epochs=25, lr=10e-3):
@@ -131,6 +131,12 @@ def train(dataset, n_channels=1, n_classes=2, out_pth=None, model_name='unet', f
                 print(f'{phase.title()} Loss: {epoch_loss:.4f} Accuracy: {epoch_acc:.4f} Sensitivity: {epoch_rec:.4f} Specificity: {epoch_spe:.4f} Precision: {epoch_pre:.4f} F1: {epoch_f1s:.4f}')
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train UNet model on HMC dataset with K-Fold cross-validation.")
+    parser.add_argument('-d', '--data_root', type=str, default='Complete_HMC_QU',
+                        help='Root directory containing the HMC dataset (e.g., A4C.xlsx, HMC-QU/, etc.)')
+    
+    args = parser.parse_args()
+
     idxs = np.arange(109)
     kf = KFold(n_splits=5,shuffle=True,random_state=9999)
 
@@ -144,8 +150,7 @@ if __name__ == "__main__":
             'test'  : test_data
         }
 
-    temp_root_split = 'Complete_HMC_QU'
-    hmc = hmc_load.HMCDataset(root=temp_root_split)
+    hmc = hmc_load.HMCDataset(root=args.data_root)
 
     dataset = {}
 
