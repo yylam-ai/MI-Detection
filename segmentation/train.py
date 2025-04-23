@@ -131,52 +131,141 @@ def train(dataset, n_channels=1, n_classes=2, out_pth=None, model_name='unet', f
                 print(f'{phase.title()} Loss: {epoch_loss:.4f} Accuracy: {epoch_acc:.4f} Sensitivity: {epoch_rec:.4f} Specificity: {epoch_spe:.4f} Precision: {epoch_pre:.4f} F1: {epoch_f1s:.4f}')
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train UNet model on HMC dataset with K-Fold cross-validation.")
-    parser.add_argument('-d', '--data_root', type=str, default='Complete_HMC_QU',
-                        help='Root directory containing the HMC dataset (e.g., A4C.xlsx, HMC-QU/, etc.)')
-    
+    parser = argparse.ArgumentParser(description="Train UNet model using pre-split K-Fold data from NumPy arrays.")
+    # --- Input Arguments ---
+    parser.add_argument('--npy_dir', type=str, default='hmc_kfold_numpy',
+                        help='Directory containing the pre-split K-Fold NumPy files (X_train_kfold.npy, etc.)')
+    parser.add_argument('--model_name', type=str, default='unet', help='Name of the model architecture (e.g., unet)')
+    # --- Training Hyperparameters ---
+    parser.add_argument('--epochs', type=int, default=25, help='Number of training epochs per fold')
+    parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate') # Adjusted default LR, 10e-3 might be high
+    parser.add_argument('--n_classes', type=int, default=2, help='Number of output classes (including background)')
+    # --- Output ---
+    parser.add_argument('--output_dir', type=str, default='model_weights_kfold',
+                        help='Directory to save trained model weights for each fold')
+    # --- Validation Split ---
+    parser.add_argument('--valid_size', type=float, default=0.1,
+                        help='Proportion of the training data per fold to use for validation')
+    parser.add_argument('--split_seed', type=int, default=42,
+                        help='Random seed for splitting train data into train/validation sets within each fold')
+
     args = parser.parse_args()
 
-    idxs = np.arange(109)
-    kf = KFold(n_splits=5,shuffle=True,random_state=9999)
+    # --- Load the pre-processed NumPy data ---
+    print(f"Loading K-Fold data from: {args.npy_dir}")
+    try:
+        x_train_folds = np.load(os.path.join(args.npy_dir, 'X_train_kfold.npy'), allow_pickle=True)
+        y_train_folds = np.load(os.path.join(args.npy_dir, 'y_train_kfold.npy'), allow_pickle=True)
+        # x_test_folds = np.load(os.path.join(args.npy_dir, 'X_test_kfold.npy'), allow_pickle=True) # Not used by train function
+        # y_test_folds = np.load(os.path.join(args.npy_dir, 'y_test_kfold.npy'), allow_pickle=True) # Not used by train function
+        print(f"Loaded data for {len(x_train_folds)} folds.")
+    except FileNotFoundError as e:
+        print(f"Error loading .npy files: {e}")
+        print("Please ensure the .npy files (X_train_kfold.npy, y_train_kfold.npy) exist in the specified directory.")
+        exit() # Exit if files are not found
+    except Exception as e:
+        print(f"An error occurred during file loading: {e}")
+        exit()
 
-    splits = {}
 
-    for i,(train_data, test_data) in enumerate(kf.split(idxs)):
-        train_data, valid_data = train_test_split(train_data,test_size=0.1)
-        splits[i] = {
-            'train' : train_data,
-            'valid' : valid_data,
-            'test'  : test_data
-        }
+    num_folds = len(x_train_folds)
+    if num_folds == 0:
+        print("Error: No folds found in the loaded NumPy arrays.")
+        exit()
 
-    hmc = hmc_load.HMCDataset(root=args.data_root)
-
+    # --- Prepare the 'dataset' dictionary for the train function ---
     dataset = {}
+    print(f"Preparing dataset structure for {num_folds} folds...")
 
-    for i in range(5):
-        
+    for i in range(num_folds):
+        print(f"  Processing Fold {i}...")
+        fold_X_train_np = x_train_folds[i] # NumPy array for fold i: (N_train_frames, C, H, W) or similar
+        fold_y_train_np = y_train_folds[i] # NumPy array for fold i: (N_train_frames, H, W)
+
+        if fold_X_train_np.size == 0 or fold_y_train_np.size == 0:
+             print(f"  Warning: Fold {i} contains empty training data. Skipping fold preparation.")
+             # Add empty entries to maintain structure if needed, or handle in train function
+             dataset[i] = {'train': [], 'valid': []}
+             continue
+
+        # --- Split this fold's training data into train/validation ---
+        num_train_samples = fold_X_train_np.shape[0]
+        indices = np.arange(num_train_samples)
+
+        if num_train_samples <= 1: # Cannot split if only 1 sample or less
+            print(f"  Warning: Not enough samples ({num_train_samples}) in Fold {i} training data to create a validation split. Using all data for training.")
+            train_indices = indices
+            valid_indices = [] # No validation set
+        elif args.valid_size <= 0 or args.valid_size >= 1:
+            print(f"  Warning: Invalid validation size ({args.valid_size}). Using all data for training.")
+            train_indices = indices
+            valid_indices = []
+        else:
+            try:
+                train_indices, valid_indices = train_test_split(
+                    indices,
+                    test_size=args.valid_size,
+                    random_state=args.split_seed # Use a seed for reproducibility
+                    # Add stratify=fold_y_train_np if labels are suitable for stratification (might need reshaping/summarizing labels)
+                )
+                print(f"    Split Fold {i} into {len(train_indices)} train / {len(valid_indices)} valid samples.")
+            except Exception as e:
+                print(f"    Error during train/valid split for Fold {i}: {e}. Using all data for training.")
+                train_indices = indices
+                valid_indices = []
+
+
+        # --- Create lists of (image_tensor, mask_tensor) tuples ---
         dataset[i] = {}
-        
-        loader = {x : DataLoader(hmc,shuffle=False,sampler=splits[i][x]) for x in ['train','valid']}
+        dataset[i]['train'] = []
+        dataset[i]['valid'] = []
 
-        for phase in ['train','valid']:
-            
-            dataset[i][phase] = []
+        # Process training subset
+        for idx in train_indices:
+            img_np = fold_X_train_np[idx] # Shape (C, H, W) or (H, W, C) depending on saving
+            mask_np = fold_y_train_np[idx] # Shape (H, W)
 
-            for raw_vid,seg_vid in loader[phase]:
-                
-                b, f, _, _ = seg_vid.shape
-                
-                for idx in range(f):
-                
-                    raw_img = raw_vid[0,:,idx,...].type(torch.float)
-                    seg_img = seg_vid[0,idx,...].type(torch.long)
-                    
-                    dataset[i][phase].append((raw_img,seg_img))
-    
-    hmc_loader = {x : DataLoader(dataset[0][x],batch_size=10,shuffle=True,num_workers=4,pin_memory=True)
-                    for x in ['train','valid']
-                    }
+            # Convert to PyTorch tensors
+            # Assuming image is (C, H, W), convert directly
+            # If image is (H, W, C), you might need to permute dims: .permute(2, 0, 1)
+            img_tensor = torch.from_numpy(img_np).float()
+            mask_tensor = torch.from_numpy(mask_np).long() # Masks typically need torch.long for CrossEntropyLoss
 
-    train(dataset)
+            dataset[i]['train'].append((img_tensor, mask_tensor))
+
+        # Process validation subset
+        for idx in valid_indices:
+            img_np = fold_X_train_np[idx]
+            mask_np = fold_y_train_np[idx]
+
+            img_tensor = torch.from_numpy(img_np).float()
+            mask_tensor = torch.from_numpy(mask_np).long()
+
+            dataset[i]['valid'].append((img_tensor, mask_tensor))
+
+    # --- Call the training function ---
+    print("\nStarting training process...")
+    # Determine n_channels from the first sample of the first fold if possible
+    n_channels = 1 # Default
+    if 0 in dataset and dataset[0]['train']:
+        n_channels = dataset[0]['train'][0][0].shape[0]
+        print(f"Determined n_channels={n_channels} from loaded data.")
+    elif 0 in dataset and dataset[0]['valid']:
+         n_channels = dataset[0]['valid'][0][0].shape[0]
+         print(f"Determined n_channels={n_channels} from loaded data (validation set).")
+    else:
+        print(f"Warning: Could not determine n_channels from data. Using default {n_channels}.")
+
+
+    train(
+        dataset=dataset,
+        n_channels=n_channels,
+        n_classes=args.n_classes,
+        out_pth=args.output_dir,
+        model_name=args.model_name,
+        folds=num_folds, # Pass the actual number of folds loaded
+        epochs=args.epochs,
+        lr=args.lr
+    )
+
+    print("\n--- Script Finished ---")
