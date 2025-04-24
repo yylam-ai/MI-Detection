@@ -313,7 +313,7 @@ if __name__ == "__main__":
         description="Train UNet model using K-Fold data stored as individual video .npy files."
     )
     # --- Input Arguments ---
-    parser.add_argument('--data_dir', type=str, default="complete_HMC_QU/hmc_kfold_time_series",
+    parser.add_argument('--data_dir', type=str, default="complete_HMC_QU/folds",
                         help='Root directory containing the fold folders (e.g., fold_0, fold_1, ...)')
     parser.add_argument('--model_name', type=str, default='unet', help='Name of the model architecture (e.g., unet)')
     # --- Training Hyperparameters ---
