@@ -1,163 +1,205 @@
 import numpy as np
 import os
-
-from segmentation import hmc_load
+import sys # For potentially adding hmc_load path
+import argparse
 from sklearn.model_selection import KFold
-import argparse 
+
+# --- Dynamically find hmc_load ---
+# Add parent directory of 'segmentation' to path if hmc_load is inside it
+# Adjust this logic based on your actual project structure if needed
+try:
+    # Assuming data_split.py is at the same level as the 'segmentation' folder
+    # or inside it. Adjust if needed.
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Go up one level if the script is inside 'segmentation'
+    if os.path.basename(script_dir) == 'segmentation':
+        parent_dir = os.path.dirname(script_dir)
+    else:
+        parent_dir = script_dir # Assume 'segmentation' is a subdir here
+
+    segmentation_module_path = os.path.join(parent_dir, 'segmentation')
+    if segmentation_module_path not in sys.path:
+         sys.path.insert(0, parent_dir) # Add parent to allow 'import segmentation.hmc_load'
+
+    # Now import
+    from segmentation import hmc_load
+
+except ImportError as e:
+     print(f"Error importing hmc_load. Make sure 'hmc_load.py' is accessible.")
+     print(f"Current sys.path: {sys.path}")
+     print(f"Attempted import path: {segmentation_module_path if 'segmentation_module_path' in locals() else 'N/A'}")
+     print(f"Original error: {e}")
+     sys.exit(1)
+except ModuleNotFoundError as e:
+     print(f"Error: Could not find the 'segmentation' module or 'hmc_load' within it.")
+     print(f"Make sure your project structure allows the import.")
+     print(f"Current sys.path: {sys.path}")
+     print(f"Original error: {e}")
+     sys.exit(1)
+# --- End dynamic import ---
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Preprocess HMC dataset with K-Fold split and save as NumPy arrays.")
+    parser = argparse.ArgumentParser(
+        description="Preprocess HMC dataset for time series analysis with K-Fold split. "
+                    "Saves each video as a separate .npy file within fold/train|test directories."
+    )
     parser.add_argument('-d', '--data_root', type=str, default='Complete_HMC_QU',
                         help='Root directory containing the HMC dataset (e.g., A4C.xlsx, HMC-QU/, etc.)')
-    parser.add_argument('-o', '--output_dir', type=str, default='hmc_kfold_numpy',
-                        help='Directory where the NumPy array files will be saved.')
+    parser.add_argument('-o', '--output_dir', type=str, default='hmc_kfold_time_series',
+                        help='Root directory where the fold folders (fold_0, fold_1, ...) will be saved.')
     parser.add_argument('--seed', type=int, default=9999, help='Random seed for KFold shuffling.')
     parser.add_argument('--n_splits', type=int, default=5, help='Number of K-Fold splits.')
-    # Add arguments for desired numpy data types (optional)
-    parser.add_argument('--img_dtype', type=str, default='float32', help='NumPy dtype for raw images (e.g., float32, uint8)')
-    parser.add_argument('--mask_dtype', type=str, default='uint8', help='NumPy dtype for segmentation masks (e.g., uint8, int32)')
+    parser.add_argument('--img_dtype', type=str, default='float32', help='NumPy dtype for saving video frames (e.g., float32, uint8)')
+    parser.add_argument('--mask_dtype', type=str, default='uint8', help='NumPy dtype for saving segmentation masks (e.g., uint8, int32)')
+    parser.add_argument('--axis', type=str, default='A4C', help='Which axis view to process (e.g., A4C, A2C)')
+    parser.add_argument('--frame_size', type=int, default=224, help='Target size (height and width) for frames.')
+    parser.add_argument('--use_cache', action='store_true', help='Use cached processed tensors from HMCDataset if available.')
 
 
     args = parser.parse_args()
 
-    print(f"Data Root: {args.data_root}")
-    print(f"Output Directory: {args.output_dir}")
-    print(f"Num Splits: {args.n_splits}")
-    print(f"Random Seed: {args.seed}")
+    print("--- Configuration ---")
+    print(f"Data Root:       {args.data_root}")
+    print(f"Output Directory:  {args.output_dir}")
+    print(f"Axis View:       {args.axis}")
+    print(f"Frame Size:      {args.frame_size}")
+    print(f"Num Splits:      {args.n_splits}")
+    print(f"Random Seed:     {args.seed}")
+    print(f"Use HMCDataset Cache: {args.use_cache}")
+    print(f"Output Image Dtype: {args.img_dtype}")
+    print(f"Output Mask Dtype:  {args.mask_dtype}")
+    print("---------------------")
 
-    # Create output directory if it doesn't exist
+    # Create base output directory
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # Load the dataset definition (replace with your actual class)
-    print("Loading HMC dataset metadata...")
-    hmc = hmc_load.HMCDataset(root=args.data_root)
-    print(f"Dataset contains {len(hmc)} items (videos).")
+    # --- Load the dataset definition ---
+    print(f"\nLoading HMC dataset metadata for axis '{args.axis}'...")
+    try:
+        hmc = hmc_load.HMCDataset(root=args.data_root,
+                                  axis=args.axis,
+                                  frame_size=args.frame_size,
+                                  use_cache=args.use_cache)
+        if len(hmc) == 0:
+            print("Error: HMCDataset loaded successfully but contains 0 items. Check A4C.xlsx and data paths.")
+            sys.exit(1)
+        print(f"Dataset contains {len(hmc)} items (videos) for axis '{args.axis}'.")
+    except (FileNotFoundError, ValueError, IOError, IndexError) as e:
+         print(f"Error initializing HMCDataset: {e}")
+         print("Please ensure the data root path is correct and A4C.xlsx exists and is valid.")
+         sys.exit(1)
+    except Exception as e:
+        print(f"An unexpected error occurred during dataset initialization: {e}")
+        sys.exit(1)
+    # --- End Dataset Loading ---
 
-    # Prepare KFold
-    # Assuming 109 is the total number of videos/items in your dataset
+
+    # --- Prepare KFold ---
     total_items = len(hmc)
     idxs = np.arange(total_items)
     kf = KFold(n_splits=args.n_splits, shuffle=True, random_state=args.seed)
+    print(f"\nPreparing {args.n_splits}-Fold split...")
+    # --- End KFold Prep ---
 
-    # Lists to hold the data for each fold
-    # Each element in these lists will be a NumPy array containing all frames for that fold/split
-    all_folds_X_train = []
-    all_folds_y_train = []
-    all_folds_X_test = []
-    all_folds_y_test = []
 
-    print(f"Processing {args.n_splits} folds...")
-    # Loop through the KFold splits
+    # --- Process and Save Folds ---
+    processed_video_count = 0
+    failed_video_count = 0
+
     for i, (train_indices, test_indices) in enumerate(kf.split(idxs)):
         print(f"\n--- Processing Fold {i} ---")
 
+        # Create directories for the current fold
+        fold_dir = os.path.join(args.output_dir, f'fold_{i}')
+        train_dir = os.path.join(fold_dir, 'train')
+        test_dir = os.path.join(fold_dir, 'test')
+        os.makedirs(train_dir, exist_ok=True)
+        os.makedirs(test_dir, exist_ok=True)
+        print(f"  Created directory: {fold_dir}")
+
         # --- Process Training Data for Fold i ---
-        fold_train_raw_frames = []
-        fold_train_seg_frames = []
         print(f"  Processing {len(train_indices)} training videos...")
+        fold_train_processed = 0
+        fold_train_failed = 0
         for vid_idx in train_indices:
-            # Get raw video tensor and segmentation tensor for the current video index
-            # Assuming hmc[idx] returns (raw_vid_tensor, seg_vid_tensor)
-            # raw_vid_tensor shape: (Channels, Frames, H, W)
-            # seg_vid_tensor shape: (Frames, H, W)
             try:
+                # Get original filename from dataset info
+                item_info = hmc.sub_df_info[vid_idx]
+                fn = item_info['filename'] # Original base filename (without extension)
+
+                # Get video tensor and segmentation tensor
+                # hmc[idx] returns (raw_vid_tensor, seg_vid_tensor) or (None, None)
+                # raw_vid_tensor shape: (C, F, H, W)
+                # seg_vid_tensor shape: (F, H, W)
                 raw_vid_tensor, seg_vid_tensor = hmc[vid_idx]
-            except Exception as e:
-                print(f"    Error loading data for index {vid_idx}: {e}")
-                continue # Skip this video if loading fails
 
-            num_frames = seg_vid_tensor.shape[0] # Get number of frames from seg tensor
-
-            # Iterate through frames of the current video
-            for frame_idx in range(num_frames):
-                # Extract the raw image frame: (Channels, H, W)
-                # Need to move channel axis if needed later (e.g., for libraries expecting H, W, C)
-                # Keep as (C, H, W) for now, consistent with typical PyTorch input
-                raw_img_tensor = raw_vid_tensor[:, frame_idx, :, :]
-                # Extract the segmentation mask frame: (H, W)
-                seg_img_tensor = seg_vid_tensor[frame_idx, :, :]
+                # Check if loading was successful
+                if raw_vid_tensor is None or seg_vid_tensor is None:
+                     print(f"    Warning: Skipping video index {vid_idx} (file: {fn}) due to loading error in HMCDataset.")
+                     fold_train_failed += 1
+                     continue
 
                 # Convert tensors to NumPy arrays with specified dtypes
-                # Use .detach() if tensors might have gradients attached
-                raw_img_np = raw_img_tensor.detach().numpy().astype(getattr(np, args.img_dtype))
-                seg_img_np = seg_img_tensor.detach().numpy().astype(getattr(np, args.mask_dtype))
+                # Use .cpu() if tensors might be on GPU, and .detach() if they have gradients
+                video_np = raw_vid_tensor.cpu().detach().numpy().astype(getattr(np, args.img_dtype))
+                mask_np = seg_vid_tensor.cpu().detach().numpy().astype(getattr(np, args.mask_dtype))
 
-                fold_train_raw_frames.append(raw_img_np)
-                fold_train_seg_frames.append(seg_img_np)
+                # Create the dictionary to save
+                data_to_save = {'X': video_np, 'y': mask_np}
 
-        # Stack all frames for the current fold's training set into single NumPy arrays
-        if fold_train_raw_frames: # Check if list is not empty
-             fold_X_train = np.stack(fold_train_raw_frames, axis=0) # Shape: (TotalTrainFrames, C, H, W)
-             fold_y_train = np.stack(fold_train_seg_frames, axis=0) # Shape: (TotalTrainFrames, H, W)
-             print(f"  Train Fold {i}: X shape={fold_X_train.shape}, y shape={fold_y_train.shape}")
-             all_folds_X_train.append(fold_X_train)
-             all_folds_y_train.append(fold_y_train)
-        else:
-             print(f"  Warning: No training data processed for fold {i}.")
-             # Append empty arrays or handle as needed if this case is possible/problematic
-             all_folds_X_train.append(np.array([]))
-             all_folds_y_train.append(np.array([]))
+                # Construct the output path and save
+                output_npy_path = os.path.join(train_dir, f"{fn}.npy")
+                np.save(output_npy_path, data_to_save) # np.save handles dicts (pickles them)
+                fold_train_processed += 1
 
+            except Exception as e:
+                # Catch errors during processing a specific video
+                print(f"    Error processing training video index {vid_idx} (File: {fn if 'fn' in locals() else 'unknown'}): {e}")
+                fold_train_failed += 1
+                continue # Skip this video
+
+        print(f"  Finished processing training data for fold {i}. Processed: {fold_train_processed}, Failed: {fold_train_failed}")
 
         # --- Process Test Data for Fold i ---
-        fold_test_raw_frames = []
-        fold_test_seg_frames = []
         print(f"  Processing {len(test_indices)} test videos...")
+        fold_test_processed = 0
+        fold_test_failed = 0
         for vid_idx in test_indices:
             try:
+                item_info = hmc.sub_df_info[vid_idx]
+                fn = item_info['filename']
+
                 raw_vid_tensor, seg_vid_tensor = hmc[vid_idx]
+
+                if raw_vid_tensor is None or seg_vid_tensor is None:
+                     print(f"    Warning: Skipping video index {vid_idx} (file: {fn}) due to loading error in HMCDataset.")
+                     fold_test_failed += 1
+                     continue
+
+                video_np = raw_vid_tensor.cpu().detach().numpy().astype(getattr(np, args.img_dtype))
+                mask_np = seg_vid_tensor.cpu().detach().numpy().astype(getattr(np, args.mask_dtype))
+
+                data_to_save = {'X': video_np, 'y': mask_np}
+
+                output_npy_path = os.path.join(test_dir, f"{fn}.npy")
+                np.save(output_npy_path, data_to_save)
+                fold_test_processed += 1
+
             except Exception as e:
-                print(f"    Error loading data for index {vid_idx}: {e}")
+                print(f"    Error processing test video index {vid_idx} (File: {fn if 'fn' in locals() else 'unknown'}): {e}")
+                fold_test_failed += 1
                 continue
 
-            num_frames = seg_vid_tensor.shape[0]
+        print(f"  Finished processing test data for fold {i}. Processed: {fold_test_processed}, Failed: {fold_test_failed}")
 
-            for frame_idx in range(num_frames):
-                raw_img_tensor = raw_vid_tensor[:, frame_idx, :, :]
-                seg_img_tensor = seg_vid_tensor[frame_idx, :, :]
+        processed_video_count += (fold_train_processed + fold_test_processed)
+        failed_video_count += (fold_train_failed + fold_test_failed)
+    # --- End Fold Processing ---
 
-                raw_img_np = raw_img_tensor.detach().numpy().astype(getattr(np, args.img_dtype))
-                seg_img_np = seg_img_tensor.detach().numpy().astype(getattr(np, args.mask_dtype))
-
-                fold_test_raw_frames.append(raw_img_np)
-                fold_test_seg_frames.append(seg_img_np)
-
-        # Stack all frames for the current fold's test set
-        if fold_test_raw_frames:
-            fold_X_test = np.stack(fold_test_raw_frames, axis=0) # Shape: (TotalTestFrames, C, H, W)
-            fold_y_test = np.stack(fold_test_seg_frames, axis=0) # Shape: (TotalTestFrames, H, W)
-            print(f"  Test Fold {i}: X shape={fold_X_test.shape}, y shape={fold_y_test.shape}")
-            all_folds_X_test.append(fold_X_test)
-            all_folds_y_test.append(fold_y_test)
-        else:
-            print(f"  Warning: No testing data processed for fold {i}.")
-            all_folds_X_test.append(np.array([]))
-            all_folds_y_test.append(np.array([]))
-
-    # --- Save the collected data ---
-    # The lists all_folds_X_train etc. now contain N NumPy arrays, where N = n_splits
-    # We save these lists directly. NumPy handles saving lists/tuples of arrays using pickling.
-    print("\n--- Saving data to .npy files ---")
-
-    # Define output file paths
-    x_train_file = os.path.join(args.output_dir, 'X_train_kfold.npy')
-    y_train_file = os.path.join(args.output_dir, 'y_train_kfold.npy')
-    x_test_file = os.path.join(args.output_dir, 'X_test_kfold.npy')
-    y_test_file = os.path.join(args.output_dir, 'y_test_kfold.npy')
-
-    # Save the lists of arrays
-    # allow_pickle=True is necessary because we are saving a list of NumPy arrays,
-    # which might have different shapes/sizes per fold.
-    np.save(x_train_file, np.array(all_folds_X_train, dtype=object), allow_pickle=True)
-    print(f"Saved X_train data for all folds to: {x_train_file}")
-    np.save(y_train_file, np.array(all_folds_y_train, dtype=object), allow_pickle=True)
-    print(f"Saved y_train data for all folds to: {y_train_file}")
-    np.save(x_test_file, np.array(all_folds_X_test, dtype=object), allow_pickle=True)
-    print(f"Saved X_test data for all folds to: {x_test_file}")
-    np.save(y_test_file, np.array(all_folds_y_test, dtype=object), allow_pickle=True)
-    print(f"Saved y_test data for all folds to: {y_test_file}")
 
     print("\n--- Finished ---")
-    print(f"To load the data later, use np.load('path/to/file.npy', allow_pickle=True)")
-    print("Example: loaded_x_train = np.load('{}', allow_pickle=True)".format(x_train_file))
-    print("Access fold 0 training data: loaded_x_train[0]")
+    print(f"Successfully processed and saved data for {processed_video_count} video instances across {args.n_splits} folds.")
+    if failed_video_count > 0:
+        print(f"Warning: Failed to process {failed_video_count} video instances. Check logs above for details.")
+    print(f"Data is saved in: {args.output_dir}")
