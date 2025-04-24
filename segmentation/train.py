@@ -322,7 +322,7 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=8, help='Batch size (number of frames per batch)')
     parser.add_argument('--n_classes', type=int, default=2, help='Number of output classes (including background)')
     # --- Output ---
-    parser.add_argument('--output_dir', type=str, default='model_weights_kfold_video',
+    parser.add_argument('--output_dir', type=str, default='model_weights',
                         help='Directory to save trained model weights for each fold')
     # --- Validation Split ---
     parser.add_argument('--valid_size', type=float, default=0.15,
