@@ -192,8 +192,8 @@ def train(datasets_per_fold, n_channels=1, n_classes=2, out_pth=None, model_name
         # Use the Dataset objects passed in datasets_per_fold
         try:
             dataloaders = {
-                'train': DataLoader(datasets_per_fold[i]['train'], batch_size=batch_size, shuffle=True, pin_memory=True, num_workers=4), # Adjust num_workers
-                'valid': DataLoader(datasets_per_fold[i]['valid'], batch_size=batch_size, shuffle=False, pin_memory=True, num_workers=4) # No shuffle for valid
+                'train': DataLoader(datasets_per_fold[i]['train'], batch_size=batch_size, shuffle=True, pin_memory=True), # Adjust num_workers
+                'valid': DataLoader(datasets_per_fold[i]['valid'], batch_size=batch_size, shuffle=False, pin_memory=True) # No shuffle for valid
             }
             print(f"  Train samples (frames): {len(datasets_per_fold[i]['train'])}")
             print(f"  Valid samples (frames): {len(datasets_per_fold[i]['valid'])}")
@@ -313,7 +313,7 @@ if __name__ == "__main__":
         description="Train UNet model using K-Fold data stored as individual video .npy files."
     )
     # --- Input Arguments ---
-    parser.add_argument('--data_dir', type=str, default="complete_HMC_QU/folds",
+    parser.add_argument('--data_dir', type=str, default="complete_HMC_QU/A4C/folds",
                         help='Root directory containing the fold folders (e.g., fold_0, fold_1, ...)')
     parser.add_argument('--model_name', type=str, default='unet', help='Name of the model architecture (e.g., unet)')
     # --- Training Hyperparameters ---
