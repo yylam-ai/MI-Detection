@@ -25,22 +25,23 @@ class HMCDataset(torchvision.datasets.VisionDataset):
 
         self.seg_path = os.path.join(self.root, 'LV Ground-truth Segmentation Masks')
         self.vid_path = os.path.join(self.root, 'HMC-QU', self.axis)
-        excel_path = os.path.join(self.root, 'A4C.xlsx')
+        excel_path = os.path.join(self.root, f'{axis}.xlsx')
 
         if not os.path.exists(excel_path):
-            raise FileNotFoundError(f"Error: A4C.xlsx not found at {excel_path}.")
+            raise FileNotFoundError(f"Error: {axis}.xlsx not found at {excel_path}.")
 
         try:
             self.df = pd.read_excel(excel_path)
+            print(self.df)
         except Exception as e:
-            raise IOError(f"Error reading A4C.xlsx: {e}")
+            raise IOError(f"Error reading {axis}.xlsx: {e}")
 
         # --- Robust Column Handling ---
         # Assuming standard structure: Check for 'ECHO' and last 3 cols usually for start/end/mask
         if 'ECHO' not in self.df.columns:
-             raise ValueError("Error: 'ECHO' column not found in A4C.xlsx.")
+             raise ValueError(f"Error: 'ECHO' column not found in {axis}.xlsx.")
         if self.df.shape[1] < 4:
-             raise IndexError("Error: A4C.xlsx does not have enough columns (expected at least 4).")
+             raise IndexError(f"Error: {axis}.xlsx does not have enough columns (expected at least 4).")
 
         # Use column names if available, otherwise fall back to indices cautiously
         echo_col_name = 'ECHO'
@@ -54,7 +55,7 @@ class HMCDataset(torchvision.datasets.VisionDataset):
         valid_mask_indices = mask_availability_col == 'ü'
 
         if not valid_mask_indices.any():
-            print(f"Warning: No entries with 'ü' found in the last column ('{mask_availability_col_name}') of A4C.xlsx. Dataset will be empty.")
+            print(f"Warning: No entries with 'ü' found in the last column ('{mask_availability_col_name}') of {axis}.xlsx. Dataset will be empty.")
             self.sub_df_info = [] # Store relevant info as a list of tuples/dicts
             self.a4c_fn = []
         else:

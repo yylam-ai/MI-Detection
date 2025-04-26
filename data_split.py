@@ -3,41 +3,7 @@ import os
 import sys # For potentially adding hmc_load path
 import argparse
 from sklearn.model_selection import KFold
-
-# --- Dynamically find hmc_load ---
-# Add parent directory of 'segmentation' to path if hmc_load is inside it
-# Adjust this logic based on your actual project structure if needed
-try:
-    # Assuming data_split.py is at the same level as the 'segmentation' folder
-    # or inside it. Adjust if needed.
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Go up one level if the script is inside 'segmentation'
-    if os.path.basename(script_dir) == 'segmentation':
-        parent_dir = os.path.dirname(script_dir)
-    else:
-        parent_dir = script_dir # Assume 'segmentation' is a subdir here
-
-    segmentation_module_path = os.path.join(parent_dir, 'segmentation')
-    if segmentation_module_path not in sys.path:
-         sys.path.insert(0, parent_dir) # Add parent to allow 'import segmentation.hmc_load'
-
-    # Now import
-    from segmentation import hmc_load
-
-except ImportError as e:
-     print(f"Error importing hmc_load. Make sure 'hmc_load.py' is accessible.")
-     print(f"Current sys.path: {sys.path}")
-     print(f"Attempted import path: {segmentation_module_path if 'segmentation_module_path' in locals() else 'N/A'}")
-     print(f"Original error: {e}")
-     sys.exit(1)
-except ModuleNotFoundError as e:
-     print(f"Error: Could not find the 'segmentation' module or 'hmc_load' within it.")
-     print(f"Make sure your project structure allows the import.")
-     print(f"Current sys.path: {sys.path}")
-     print(f"Original error: {e}")
-     sys.exit(1)
-# --- End dynamic import ---
-
+from segmentation import hmc_load
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -46,13 +12,13 @@ if __name__ == "__main__":
     )
     parser.add_argument('-d', '--data_root', type=str, default='Complete_HMC_QU',
                         help='Root directory containing the HMC dataset (e.g., A4C.xlsx, HMC-QU/, etc.)')
-    parser.add_argument('-o', '--output_dir', type=str, default='hmc_kfold_time_series',
+    parser.add_argument('-o', '--output_dir', type=str, default='complete_HMC_QU/A2C/folds',
                         help='Root directory where the fold folders (fold_0, fold_1, ...) will be saved.')
     parser.add_argument('--seed', type=int, default=9999, help='Random seed for KFold shuffling.')
     parser.add_argument('--n_splits', type=int, default=5, help='Number of K-Fold splits.')
     parser.add_argument('--img_dtype', type=str, default='float32', help='NumPy dtype for saving video frames (e.g., float32, uint8)')
     parser.add_argument('--mask_dtype', type=str, default='uint8', help='NumPy dtype for saving segmentation masks (e.g., uint8, int32)')
-    parser.add_argument('--axis', type=str, default='A4C', help='Which axis view to process (e.g., A4C, A2C)')
+    parser.add_argument('--axis', type=str, default='A2C', help='Which axis view to process (e.g., A4C, A2C)')
     parser.add_argument('--frame_size', type=int, default=224, help='Target size (height and width) for frames.')
     parser.add_argument('--use_cache', action='store_true', help='Use cached processed tensors from HMCDataset if available.')
 
@@ -82,7 +48,7 @@ if __name__ == "__main__":
                                   frame_size=args.frame_size,
                                   use_cache=args.use_cache)
         if len(hmc) == 0:
-            print("Error: HMCDataset loaded successfully but contains 0 items. Check A4C.xlsx and data paths.")
+            print(f"Error: HMCDataset loaded successfully but contains 0 items. Check {args.axis}.xlsx and data paths.")
             sys.exit(1)
         print(f"Dataset contains {len(hmc)} items (videos) for axis '{args.axis}'.")
     except (FileNotFoundError, ValueError, IOError, IndexError) as e:

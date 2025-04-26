@@ -46,7 +46,7 @@ def run_inference(args):
     print("--- Starting Inference ---")
     print(f"Target Fold Index:   {args.fold_index}")
     print(f"Data Directory:      {args.data_dir}")
-    print(f"Model Directory:     {args.model_dir}")
+    print(f"Model Path:     {args.model_path}")
     print(f"Output Directory:    {args.output_dir}")
     print(f"Model Base Name:     {args.model_base_name}")
     print(f"Num Classes:         {args.n_classes}")
@@ -56,7 +56,7 @@ def run_inference(args):
 
     # --- 1. Locate Test Data for the Fold ---
     fold_dir = os.path.join(args.data_dir, f'fold_{args.fold_index}')
-    test_data_dir = os.path.join(fold_dir, 'test')
+    test_data_dir = os.path.join(fold_dir, 'inference_data')
 
     if not os.path.isdir(test_data_dir):
         print(f"Error: Test data directory not found for fold {args.fold_index}: {test_data_dir}")
@@ -89,10 +89,7 @@ def run_inference(args):
         return
 
     # Construct model path based on convention from training script
-    model_filename = f"{args.model_base_name}_best_loss_fold{args.fold_index}.pth"
-    # Model should be inside the specific fold's output directory in model_dir
-    fold_model_dir = os.path.join(args.model_dir, f'fold_{args.fold_index}')
-    model_path = os.path.join(fold_model_dir, model_filename)
+    model_path = f"{args.model_path}"
 
     if not os.path.exists(model_path):
         print(f"Error: Model weights file not found at {model_path}")
@@ -202,13 +199,13 @@ if __name__ == "__main__":
     )
 
     # --- Input/Output Arguments ---
-    parser.add_argument('--data_dir', type=str, required=True,
+    parser.add_argument('--data_dir', type=str, default="complete_HMC_QU/A4C/folds",
                         help='Root directory containing the fold folders (e.g., fold_0/test/, fold_1/test/, ...)')
-    parser.add_argument('--model_dir', type=str, required=True,
-                        help='Root directory containing the fold-specific model weight folders (e.g., model_weights_kfold_video/fold_0/)')
-    parser.add_argument('--output_dir', type=str, default='inference_results',
+    parser.add_argument('--model_path', type=str, default="model_weights/segmentation_A4C/unet_best_loss_fold0.pth",
+                        help='Root directory containing the fold-specific model weight folders (e.g., model_weights_kfold_video/fold_0/unet.pth)')
+    parser.add_argument('--output_dir', type=str, default='inference_results/A4C',
                         help='Base directory where fold-specific prediction output folders will be created.')
-    parser.add_argument('--fold_index', type=int, required=True,
+    parser.add_argument('--fold_index', type=int, default=0,
                         help='Index of the fold (model and test data) to use (e.g., 0, 1, ...)')
 
     # --- Model Arguments ---
