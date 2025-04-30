@@ -472,7 +472,7 @@ if __name__ == "__main__":
                  img_gray = image_data
             else: # Attempt reshape if it looks like (C, H, W) or similar
                  print("shape:", image_data.shape)
-                 img_gray = image_data.reshape(-1, 224, 224)[0] # MODIFY 224, 224 if needed
+                 img_gray = image_data.reshape(-1, 224, 224)[0] # get first frame
         elif isinstance(image_data, dict): # Like the original script assumed
              img_gray = image_data.item()['X'].reshape(-1, 224, 224)[0] # MODIFY 224, 224 if needed
         else:
