@@ -566,7 +566,8 @@ def track_points_klt(prev_frame_gray, current_frame_gray, prev_points_rc,
 if __name__ == "__main__":
     # --- Parameters ---
     # Input
-    image_path = 'complete_HMC_QU/A2C/folds/fold_0/inference_data/ES0001_CH2_1.npy'
+    # image_path = 'complete_HMC_QU/A2C/folds/fold_0/inference_data/ES0001_CH2_1.npy'
+    image_path = 'complete_HMC_QU/A4C/folds/fold_0/inference_data/ES0001 _4CH_1.npy'
 
     # Anchor Finding
     anchor_params = {
@@ -824,43 +825,41 @@ if __name__ == "__main__":
             all_contours.append({'left': segments_left, 'right': segments_right, 'evolved_raw': evolved_contour})
 
 
-    # --- Visualization (Example: Show results for the LAST processed frame) ---
-    display_frame_idx = len(image_sequence_processed) - 1
-    # display_frame_idx = 0 # Or choose another frame index to display
+    # --- Visualization (Show results for ALL processed frames sequentially) ---
+    print(f"\n--- Displaying Results Sequentially for All Processed Frames ---")
 
-    print(f"\n--- Displaying Results for Frame {display_frame_idx} ---")
+    # Define colors outside the loop (consistent for all frames)
+    # colors[0]=Apical, colors[1]=Mid, colors[2]=Basal
+    colors_left_functional = ['red', 'lime', 'cyan']      # Apical, Mid, Basal
+    colors_right_functional = ['magenta', 'yellow', 'blue'] # Apical, Mid, Basal
+    expected_num_segments = num_colored_segments_def + 1 # Includes white apex
 
-    img_to_display = image_sequence_float_norm[display_frame_idx]
-    points_to_display = all_tracked_points[display_frame_idx]
-    contour_data_to_display = all_contours[display_frame_idx]
+    # Store average features per frame if needed later
+    all_frames_left_features = []
+    all_frames_right_features = []
 
-    if points_to_display is None or None in points_to_display:
-        print(f"Cannot display Frame {display_frame_idx}: Tracked points are missing.")
-    elif contour_data_to_display is None:
-        print(f"Displaying Frame {display_frame_idx}: Tracked points available, but contour generation failed.")
-        # Show only the image and tracked points
-        fig, ax = plt.subplots(figsize=(8, 8))
-        ax.imshow(img_to_display, cmap='gray')
+    for frame_idx in range(len(image_sequence_processed)):
+        print(f"\n--- Preparing Visualization for Frame {frame_idx} ---")
+
+        img_to_display = image_sequence_float_norm[frame_idx]
+        points_to_display = all_tracked_points[frame_idx]
+        contour_data_to_display = all_contours[frame_idx]
+
+        # --- Check if data for this frame is valid ---
+        if points_to_display is None or None in points_to_display:
+            print(f"Skipping Frame {frame_idx}: Tracked points are missing or invalid.")
+            # Append placeholder for features if tracking failed
+            all_frames_left_features.append(None)
+            all_frames_right_features.append(None)
+            continue # Skip to the next frame
+
+        # Retrieve tracked points
         start_pt_rc_disp, apex_pt_rc_disp, end_pt_rc_disp = points_to_display
-        ax.plot(start_pt_rc_disp[1], start_pt_rc_disp[0], 'go', markersize=7, label='Tracked Start')
-        ax.plot(apex_pt_rc_disp[1], apex_pt_rc_disp[0], 'yo', markersize=7, label='Tracked Apex')
-        ax.plot(end_pt_rc_disp[1], end_pt_rc_disp[0], 'bo', markersize=7, label='Tracked End')
-        ax.set_title(f"Frame {display_frame_idx} - Contour Failed")
-        ax.legend()
-        ax.axis('off')
-        plt.show()
-    else:
-        # Display the full segmentation result like before
-        start_pt_rc_disp, apex_pt_rc_disp, end_pt_rc_disp = points_to_display
-        segments_left = contour_data_to_display['left']
-        segments_right = contour_data_to_display['right']
-        # Optional: get initial contour for this frame if needed for panel 2
-        # We didn't store initial contours per frame, but could recalculate if needed
-        # initial_contour_disp = create_initial_contour_with_anchors(...)
 
-
-        fig, axes = plt.subplots(1, 2, figsize=(14, 6)) # Reduced to 2 panels for simplicity
-        plt.suptitle(f"Endocardial Boundary Extraction - Frame {display_frame_idx}", fontsize=16)
+        # --- Create Figure for this Frame ---
+        # Create new figure and axes for each frame to avoid plotting over previous ones
+        fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+        plt.suptitle(f"Endocardial Boundary Extraction - Frame {frame_idx}", fontsize=16)
 
         # --- Panel 1: Input + Tracked Points ---
         ax = axes[0]
@@ -879,66 +878,120 @@ if __name__ == "__main__":
         ax = axes[1]
         ax.imshow(img_to_display, cmap='gray')
 
-        # Define colors (consistent with previous script)
-        # colors[0]=Apical, colors[1]=Mid, colors[2]=Basal
-        colors_left_functional = ['red', 'lime', 'cyan']      # Apical, Mid, Basal (flipped order for intuitive mapping)
-        colors_right_functional = ['magenta', 'yellow', 'blue'] # Apical, Mid, Basal
-        expected_num_segments = num_colored_segments_def + 1 # Includes white apex
+        current_frame_left_features = None
+        current_frame_right_features = None
 
-        # Plot Left Segments (Apex -> Basal Order)
-        # segments_left[0]=apex(white), [1]=apical, [2]=mid, [3]=basal
-        if len(segments_left) == expected_num_segments:
-            for i, seg in enumerate(segments_left):
-                if seg is not None and len(seg) > 1:
-                    if i == 0: color = 'white'
-                    else:
-                        color_index = i - 1 # Map segment index (1,2,3) to color index (0,1,2)
-                        if color_index < len(colors_left_functional): color = colors_left_functional[color_index]
-                        else: color = 'gray'
-                    ax.plot(seg[:, 1], seg[:, 0], '-', color=color, lw=3)
-        elif len(segments_left) > 0: # Fallback plot if segmentation returned different number
-            print(f"Warning: Plotting left side with {len(segments_left)} segments (expected {expected_num_segments}).")
-            for i, seg in enumerate(segments_left):
-                 if seg is not None and len(seg) > 1:
-                       color = colors_left_functional[i % len(colors_left_functional)]
-                       ax.plot(seg[:, 1], seg[:, 0], '-', color=color, lw=3)
+        if contour_data_to_display is None:
+            print(f"Displaying Frame {frame_idx}: Contour generation failed. Showing only tracked points.")
+            ax.set_title("Contour Failed")
+            # Optionally add the tracked points again to the second panel for context
+            ax.plot(start_pt_rc_disp[1], start_pt_rc_disp[0], 'go', markersize=5)
+            ax.plot(apex_pt_rc_disp[1], apex_pt_rc_disp[0], 'yo', markersize=5)
+            ax.plot(end_pt_rc_disp[1], end_pt_rc_disp[0], 'bo', markersize=5)
+            ax.axis('off') # Keep axis off even if contour failed
+        else:
+            # Proceed with plotting the segmented contour
+            segments_left = contour_data_to_display.get('left', []) # Use .get for safety
+            segments_right = contour_data_to_display.get('right', [])
+
+            # Plot Left Segments (Apex -> Basal Order)
+            # segments_left[0]=apex(white), [1]=apical, [2]=mid, [3]=basal
+            valid_left_segments = []
+            if segments_left and len(segments_left) > 0: # Check if list is not empty
+                if len(segments_left) == expected_num_segments:
+                    for i, seg in enumerate(segments_left):
+                        if seg is not None and len(seg) > 1:
+                             valid_left_segments.append(seg) # Keep track for feature calculation
+                             if i == 0: color = 'white'
+                             else:
+                                 color_index = i - 1 # Map segment index (1,2,3) to color index (0,1,2)
+                                 if color_index < len(colors_left_functional): color = colors_left_functional[color_index]
+                                 else: color = 'gray' # Fallback color
+                             ax.plot(seg[:, 1], seg[:, 0], '-', color=color, lw=3)
+                else: # Fallback plot if segmentation returned different number
+                    print(f"  Warning: Plotting left side with {len(segments_left)} segments (expected {expected_num_segments}). Using fallback colors.")
+                    for i, seg in enumerate(segments_left):
+                         if seg is not None and len(seg) > 1:
+                               valid_left_segments.append(seg)
+                               color = colors_left_functional[i % len(colors_left_functional)]
+                               ax.plot(seg[:, 1], seg[:, 0], '-', color=color, lw=3)
+
+            # Plot Right Segments (Apex -> Basal Order)
+            # segments_right[0]=apex(white), [1]=apical, [2]=mid, [3]=basal
+            valid_right_segments = []
+            if segments_right and len(segments_right) > 0: # Check if list is not empty
+                if len(segments_right) == expected_num_segments:
+                     for i, seg in enumerate(segments_right):
+                         if seg is not None and len(seg) > 1:
+                             valid_right_segments.append(seg)
+                             if i == 0: color = 'white'
+                             else:
+                                 color_index = i - 1 # Map segment index (1,2,3) to color index (0,1,2)
+                                 if color_index < len(colors_right_functional): color = colors_right_functional[color_index]
+                                 else: color = 'gray'
+                             ax.plot(seg[:, 1], seg[:, 0], '-', color=color, lw=3)
+                else: # Fallback plot
+                    print(f"  Warning: Plotting right side with {len(segments_right)} segments (expected {expected_num_segments}). Using fallback colors.")
+                    for i, seg in enumerate(segments_right):
+                         if seg is not None and len(seg) > 1:
+                               valid_right_segments.append(seg)
+                               color = colors_right_functional[i % len(colors_right_functional)]
+                               ax.plot(seg[:, 1], seg[:, 0], '-', color=color, lw=3)
+
+            ax.set_title("Active Polynomials (Segmented)")
+            ax.axis('off')
+
+            # --- Calculate and Print Features for this frame (if segments valid) ---
+            # Calculate only if segments were actually plotted and valid
+            if valid_left_segments:
+                # Ensure we skip the apex segment (index 0) if present and expected
+                segments_to_avg_left = valid_left_segments
+                if len(valid_left_segments) == expected_num_segments:
+                    segments_to_avg_left = valid_left_segments[1:] # Skip white apex segment
+                # Check if segments_to_avg_left is not empty after skipping apex
+                if segments_to_avg_left:
+                    current_frame_left_features = [
+                        [sum(col) / len(col) for col in zip(*matrix)] if matrix.size > 0 else [np.nan, np.nan] # Handle empty matrix
+                        for matrix in segments_to_avg_left # Use the filtered list
+                    ]
+                    print(f'  Frame {frame_idx} Left Features (Avg R,C): {current_frame_left_features}')
+                else:
+                    print(f'  Frame {frame_idx} Left Features: No valid non-apex segments found.')
+                    current_frame_left_features = None
+
+            if valid_right_segments:
+                segments_to_avg_right = valid_right_segments
+                if len(valid_right_segments) == expected_num_segments:
+                    segments_to_avg_right = valid_right_segments[1:] # Skip white apex segment
+                 # Check if segments_to_avg_right is not empty after skipping apex
+                if segments_to_avg_right:
+                    # Reverse the order for right side features if needed (Basal -> Mid -> Apical order often desired)
+                    segments_to_avg_right = segments_to_avg_right[::-1]
+                    current_frame_right_features = [
+                        [sum(col) / len(col) for col in zip(*matrix)] if matrix.size > 0 else [np.nan, np.nan] # Handle empty matrix
+                        for matrix in segments_to_avg_right
+                    ]
+                    print(f'  Frame {frame_idx} Right Features (Avg R,C): {current_frame_right_features}')
+                else:
+                    print(f'  Frame {frame_idx} Right Features: No valid non-apex segments found.')
+                    current_frame_right_features = None
 
 
-        # Plot Right Segments (Apex -> Basal Order)
-        # segments_right[0]=apex(white), [1]=apical, [2]=mid, [3]=basal
-        if len(segments_right) == expected_num_segments:
-             for i, seg in enumerate(segments_right):
-                 if seg is not None and len(seg) > 1:
-                     if i == 0: color = 'white'
-                     else:
-                         color_index = i - 1 # Map segment index (1,2,3) to color index (0,1,2)
-                         if color_index < len(colors_right_functional): color = colors_right_functional[color_index]
-                         else: color = 'gray'
-                     ax.plot(seg[:, 1], seg[:, 0], '-', color=color, lw=3)
-        elif len(segments_right) > 0: # Fallback plot
-            print(f"Warning: Plotting right side with {len(segments_right)} segments (expected {expected_num_segments}).")
-            for i, seg in enumerate(segments_right):
-                 if seg is not None and len(seg) > 1:
-                       color = colors_right_functional[i % len(colors_right_functional)]
-                       ax.plot(seg[:, 1], seg[:, 0], '-', color=color, lw=3)
-        
-        segments_right = segments_right[::-1]
-        segments_left.pop(-1)
-        segments_right.pop(-1)
-        left_features_avg = [
-            [sum(col) / len(col) for col in zip(*matrix)]
-            for matrix in segments_left
-        ]
-        right_features_avg = [
-            [sum(col) / len(col) for col in zip(*matrix)]
-            for matrix in segments_right
-        ]
-        print('left:', left_features_avg)
-        print('right:', right_features_avg)
+        # Store features for the frame
+        all_frames_left_features.append(current_frame_left_features)
+        all_frames_right_features.append(current_frame_right_features)
 
+        # --- Finalize and Show Plot for Current Frame ---
+        plt.tight_layout(rect=[0, 0.03, 1, 0.95]) # Adjust layout to prevent title overlap
+        print(f"--> Displaying plot for Frame {frame_idx}. Close the plot window to view the next frame...")
+        plt.show() # Show the plot for the current frame and block until closed
 
-        ax.set_title("Active Polynomials (Segmented)")
-        ax.axis('off')
+    print("\n--- Finished displaying all frames ---")
 
-        plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-        plt.show()
+    # Optional: Print all collected features at the end
+    # print("\nCollected Left Features per Frame:")
+    # for i, feat in enumerate(all_frames_left_features):
+    #     print(f" Frame {i}: {feat}")
+    # print("\nCollected Right Features per Frame:")
+    # for i, feat in enumerate(all_frames_right_features):
+    #     print(f" Frame {i}: {feat}")

@@ -213,7 +213,8 @@ def segment_polynomials(coeffs, side_points, num_colored_segments=3):
 # --- Main Execution ---
 if __name__ == "__main__":
     # --- Load Image ---
-    image_path = 'complete_HMC_QU/A4C/folds/fold_0/inference_data/ES0001 _4CH_1.npy'
+    # image_path = 'complete_HMC_QU/A4C/folds/fold_0/inference_data/ES0001 _4CH_1.npy'
+    image_path = 'complete_HMC_QU/A2C/folds/fold_0/inference_data/ES0001_CH2_1.npy'
 
     image_orig = np.load(image_path, allow_pickle=True).item()['X']
     image_gray = image_orig.reshape(-1, 224, 224)[0]
