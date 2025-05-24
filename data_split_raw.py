@@ -28,19 +28,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # --- Update output dir based on axis ---
-    # If the default output is used, make it axis-specific
-    if args.output_dir == 'complete_HMC_QU/A2C/folds' and args.axis != 'A2C':
-         args.output_dir = os.path.join(args.data_root, args.axis, 'folds')
-         print(f"Info: Adjusted output directory based on axis to: {args.output_dir}")
-    elif not os.path.isabs(args.output_dir): # Ensure path exists relative to data_root if not absolute
-         potential_output_dir = os.path.join(args.data_root, args.output_dir)
-         # Heuristic: if output_dir doesn't contain axis name, put it under axis dir
-         if args.axis not in args.output_dir.split(os.sep):
-              args.output_dir = os.path.join(args.data_root, args.axis, args.output_dir)
-              print(f"Info: Adjusted output directory to be axis-specific: {args.output_dir}")
-
-
     print("--- Configuration ---")
     print(f"Data Root:       {args.data_root}")
     print(f"Output Directory:  {args.output_dir}")
